@@ -60,6 +60,9 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_ICEngine',
     'AP_Frsky_Telem',
     'AP_FlashStorage',
+    # 自增加
+    'icp_opencv',
+    'rplidar_sdk',
 ]
 
 def get_legacy_defines(sketch_name):

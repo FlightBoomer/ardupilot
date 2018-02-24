@@ -109,6 +109,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             success = guided_nogps_init(ignore_checks);
             break;
 
+        case LIDARHOLD:
+            success = lidarhold_init(ignore_checks);
+            break;
+
         default:
             success = false;
             break;
@@ -244,6 +248,10 @@ void Copter::update_flight_mode()
 
         case GUIDED_NOGPS:
             guided_nogps_run();
+            break;
+
+        case LIDARHOLD:
+            lidarhold_run();
             break;
 
         default:
@@ -419,6 +427,8 @@ void Copter::notify_flight_mode(control_mode_t mode)
         case GUIDED_NOGPS:
             notify.set_flight_mode_str("GNGP");
             break;
+        case LIDARHOLD:
+            notify.set_flight_mode_str("LDAR");
         default:
             notify.set_flight_mode_str("----");
             break;
@@ -484,6 +494,9 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     case GUIDED_NOGPS:
         port->printf("GUIDED_NOGPS");
+        break;
+    case LIDARHOLD:
+        port->printf("LIDARHOLD");
         break;
     default:
         port->printf("Mode(%u)", (unsigned)mode);

@@ -936,6 +936,9 @@ private:
     void avoid_adsb_run();
     bool avoid_adsb_set_velocity(const Vector3f& velocity_neu);
 
+    bool lidarhold_init(bool ignore_checks);        // 自增加的模式
+    void lidarhold_run();
+
     void ekf_check();
     bool ekf_over_threshold();
     void failsafe_ekf_event();
