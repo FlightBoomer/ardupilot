@@ -4,15 +4,23 @@
 /*
  * Init and run calls for lidarhold flight mode
  */
-class __lidar_ctrller {
+class __lidar_ctrl {
 public:
 
-    __lidar_ctrller() {
+    __lidar_ctrl() {
+        vel_ctrl = new AC_PI_2D(1.0f, 0.0f, 150.0f, 6.0f, 0.3f);
+        pos_ctrl = new AC_PI_2D(0.0f, 0.0f, 150.0f, 6.0f, 0.3f);
 
+        vx = vy = 0;
+        x  = y  = 0.0f;
+        roll_out  = pitch_out = 0.0f;
+        t_now.tv_sec  = t_now.tv_usec  = 0;
+        t_last.tv_sec = t_last.tv_usec = 0.0f;
     }
 
-    int init() {
-
+    ~__lidar_ctrl() {
+        delete vel_ctrl;
+        delete pos_ctrl;
     }
 
     double get_Roll_Output()  { return roll_out;  }
@@ -21,9 +29,9 @@ public:
 
     double get_dt() { return dt; }
 
-    void set_Vel(double vx_in, double vy_in) { vx = vx_in; vy = vy_in; }
+    void set_Vel(double vx_in, double vy_in) { vx = vx_in; vy = vy_in; }        // roll, pitch
 
-    void set_Pos(double x_in, double y_in)   { x  = x_in;  y  = y_in;  }
+    void set_Pos(double x_in,  double y_in)  { x  = x_in;  y  = y_in;  }        // roll, pitch
 
     void update_Time() {
 
@@ -39,27 +47,43 @@ public:
 
     }// int update_Time()
 
-    void calc_Vel_Controller() {
+    void calc_Vel_Controller(double vx_tgt, double vy_tgt, double t0) {
+        Vector2f in;
+        Vector2f out(0.0f, 0.0f);
 
+        in.x = vx_tgt - vx; in.y = vy_tgt - vy;
+        vel_ctrl->set_dt(t0);
+        vel_ctrl->set_input(in);
+        out = vel_ctrl->get_pi();
+
+        roll_out  = out.x;
+        pitch_out = out.y;
     }
 
-    void calc_Pos_Controller() {
+    void calc_Pos_Controller(double t0) {
 
     }
 
 private:
 
-    AC_PID_2D vel_ctrl;
-    AC_PID_2D pos_ctrl;
+    AC_PI_2D* vel_ctrl;
+    AC_PI_2D* pos_ctrl;
 
     double vx, vy;
     double x,  y;
     double roll_out, pitch_out;
 
     timeval t_now, t_last;
-    double  dt;
+    double  dt;                 // ms
 
 };
+
+__lidar_ctrl ctrl;
+// 以下来自usercode
+extern bool is_lidar_online;
+extern bool is_lidarpos_updated;
+extern double lidar_x,  lidar_y;
+extern double lidar_dx, lidar_dy;
 
 // stabilize_init - initialise stabilize controller
 bool Copter::lidarhold_init(bool ignore_checks)
@@ -67,6 +91,11 @@ bool Copter::lidarhold_init(bool ignore_checks)
     // if landed and the mode we're switching from does not have manual throttle and the throttle stick is too high
     if (motors->armed() && ap.land_complete && !mode_has_manual_throttle(control_mode) &&
             (get_pilot_desired_throttle(channel_throttle->get_control_in()) > get_non_takeoff_throttle())) {
+        return false;
+    }
+    // 如果激光雷达不在进入这个模式没有意义
+    if (!is_lidar_online) {
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_ERROR, "rplidar is offline, mode remain unchanged..");
         return false;
     }
     // set target altitude to zero for reporting
@@ -82,6 +111,18 @@ void Copter::lidarhold_run()
     float target_roll, target_pitch;
     float target_yaw_rate;
     float pilot_throttle_scaled;
+
+    /// debug
+    //  放在这里，看它能不能算
+    if (is_lidarpos_updated) {
+        ctrl.update_Time();
+        ctrl.set_Vel(lidar_dx, lidar_dy);
+        ctrl.calc_Vel_Controller(0, 0, ctrl.get_dt() / 1e3);
+        // 打印数据
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "rc_x: %d, rc_y: %d", ctrl.get_Roll_Output(), ctrl.get_Pitch_Output());
+
+        is_lidarpos_updated = false;
+    }
 
     // if not armed set throttle to zero and exit immediately
     if (!motors->armed() || ap.throttle_zero || !motors->get_interlock()) {
