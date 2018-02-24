@@ -8,7 +8,8 @@ using namespace cv;
 
 __lidar_driver	lidar;
 __icp			_icp;
-bool is_lidar_online = false;
+bool is_lidar_online     = false;
+bool is_lidarpos_updated = false;
 
 #ifdef USERHOOK_INIT
 void Copter::userhook_init()
@@ -87,6 +88,7 @@ void Copter::userhook_SlowLoop()
             GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "icp: dx: %f, dy: %f", _icp.dx, _icp.dy);
 
             is_ok_times = 0;
+            is_lidarpos_updated = true;
             waitKey(30);
         }
     }

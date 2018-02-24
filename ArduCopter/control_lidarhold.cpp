@@ -1,8 +1,65 @@
 #include "Copter.h"
+#include <sys/time.h>
 
 /*
- * Init and run calls for stabilize flight mode
+ * Init and run calls for lidarhold flight mode
  */
+class __lidar_ctrller {
+public:
+
+    __lidar_ctrller() {
+
+    }
+
+    int init() {
+
+    }
+
+    double get_Roll_Output()  { return roll_out;  }
+
+    double get_Pitch_Output() { return pitch_out; }
+
+    double get_dt() { return dt; }
+
+    void set_Vel(double vx_in, double vy_in) { vx = vx_in; vy = vy_in; }
+
+    void set_Pos(double x_in, double y_in)   { x  = x_in;  y  = y_in;  }
+
+    void update_Time() {
+
+        t_last = t_now;
+        gettimeofday(&t_now, NULL);
+        if (t_last.tv_usec > t_now.tv_usec)
+            dt = t_now.tv_usec + 1e6 - t_last.tv_usec;
+        else
+            dt = t_now.tv_usec - t_last.tv_usec;
+
+        // us->ms
+        dt /= 1e3;
+
+    }// int update_Time()
+
+    void calc_Vel_Controller() {
+
+    }
+
+    void calc_Pos_Controller() {
+
+    }
+
+private:
+
+    AC_PID_2D vel_ctrl;
+    AC_PID_2D pos_ctrl;
+
+    double vx, vy;
+    double x,  y;
+    double roll_out, pitch_out;
+
+    timeval t_now, t_last;
+    double  dt;
+
+};
 
 // stabilize_init - initialise stabilize controller
 bool Copter::lidarhold_init(bool ignore_checks)
