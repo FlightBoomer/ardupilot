@@ -4,12 +4,42 @@
 /*
  * Init and run calls for lidarhold flight mode
  */
+/**
+ * @brief The __lidar_ctrl class
+ * 策略：
+ *      因为四轴的运动线加速度是由欧拉角决定的
+ *      所以在自稳环外面再套速度环和位置环，即
+ *      4级的PID
+ *      位置->速度->角度->角速度
+ *
+ *  1
+ *      角度和角速度用现有的stabilize模式下的控制
+ *      速度环的输入输出给get_desired_lean_angle，这样做是为了保证稳定性，也是为了很好的归一化速度
+ *
+ *  2
+ *      速度环输出
+ *          roll, pitch: -4500~4500
+ *      极速状态下测出的dx, dy
+ *          ±150左右
+ *      这边暂时先考虑限制幅度
+ *          RC的输出满是4500，这边只用1500
+ *
+ *      所以
+ *          P大概取10
+ *
+ *  3
+ *      因为正常都是先调内环再调外环
+ *      所以外环的输出应该和内环的输入差不多
+ */
+#define VEL_PID_MAX 1500.0f
+#define POS_PID_MAX 150.0f
+
 class __lidar_ctrl {
 public:
 
     __lidar_ctrl() {
-        vel_ctrl = new AC_PI_2D(1.0f, 0.0f, 150.0f, 6.0f, 0.3f);
-        pos_ctrl = new AC_PI_2D(0.0f, 0.0f, 150.0f, 6.0f, 0.3f);
+        vel_ctrl = new AC_PI_2D(10.0f, 0.0f, 150.0f, 6.0f, 0.3f);
+        pos_ctrl = new AC_PI_2D(0.0f,  0.0f, 150.0f, 6.0f, 0.3f);
 
         vx = vy = 0;
         x  = y  = 0.0f;
@@ -56,8 +86,20 @@ public:
         vel_ctrl->set_input(in);
         out = vel_ctrl->get_pi();
 
-        roll_out  = out.x;
-        pitch_out = out.y;
+        // 输出限幅
+        if (out.x >= VEL_PID_MAX)
+            roll_out = VEL_PID_MAX;
+        else if (out.x <= -VEL_PID_MAX)
+            roll_out = -VEL_PID_MAX;
+        else
+            roll_out = out.y;
+
+        if (out.y >= VEL_PID_MAX)
+            pitch_out  = VEL_PID_MAX;
+        else if (out.y <= -VEL_PID_MAX)
+            pitch_out = -VEL_PID_MAX;
+        else
+            pitch_out =out.y;
     }
 
     void calc_Pos_Controller(double t0) {
@@ -119,7 +161,8 @@ void Copter::lidarhold_run()
         ctrl.set_Vel(lidar_dx, lidar_dy);
         ctrl.calc_Vel_Controller(0, 0, ctrl.get_dt() / 1e3);
         // 打印数据
-        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "rc_x: %d, rc_y: %d", ctrl.get_Roll_Output(), ctrl.get_Pitch_Output());
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "rc_x: %f, rc_y: %f", ctrl.get_Roll_Output(), ctrl.get_Pitch_Output());
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "dt: %f", ctrl.get_dt() / 1e3);
 
         is_lidarpos_updated = false;
     }

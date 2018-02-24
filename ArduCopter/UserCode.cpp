@@ -51,14 +51,6 @@ void Copter::userhook_50Hz()
 void Copter::userhook_MediumLoop()
 {
     // put your 10Hz code here
-}
-#endif
-
-#ifdef USERHOOK_SLOWLOOP
-void Copter::userhook_SlowLoop()
-{
-    // put your 3.3Hz code here
-
     ///
     /// 激光雷达扫描
     const  int is_ok_thereshold = 2;		// 采样几次后处理，这个值可以理解为后续的样本点，样本点越多，后续的精度增加非常多， 但是样本点越多，实时性越差
@@ -100,7 +92,14 @@ void Copter::userhook_SlowLoop()
             is_lidarpos_updated = true;
             waitKey(30);
         }
-    }
+    } // is_ldar_online
+}
+#endif
+
+#ifdef USERHOOK_SLOWLOOP
+void Copter::userhook_SlowLoop()
+{
+    // put your 3.3Hz code here
 }
 #endif
 
