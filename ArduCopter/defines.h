@@ -269,9 +269,18 @@ enum ThrowModeType {
     ThrowType_Drop = 1
 };
 
+// Land states
 enum LandStateType {
     LandStateType_FlyToLocation = 0,
     LandStateType_Descending = 1
+};
+
+// Lidar_Hold states
+enum LidarHoldModeState {
+    LidarHold_MotorStopped,
+    LidarHold_Takeoff,
+    LidarHold_Flying,
+    LidarHold_Landed
 };
 
 enum PayloadPlaceStateType {
