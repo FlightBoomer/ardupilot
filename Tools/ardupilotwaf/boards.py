@@ -290,6 +290,27 @@ class linux(Board):
             'AP_HAL_Linux',
         ]
 
+        # Opencv
+        env.LIB += [
+            'opencv_calib3d',
+            'opencv_core',
+            'opencv_features2d',
+            'opencv_flann',
+            'opencv_highgui',
+            #'opencv_imgcodecs',
+            'opencv_imgproc',
+            'opencv_ml',
+            'opencv_objdetect',
+            'opencv_photo',
+            #'opencv_shape',
+            'opencv_stitching',
+            'opencv_superres',
+            'opencv_ts',
+            'opencv_video',
+            #'opencv_videoio',
+            'opencv_videostab',
+            ]
+
 
 class minlure(linux):
     def configure_env(self, cfg, env):

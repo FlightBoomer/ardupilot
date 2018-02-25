@@ -85,8 +85,8 @@ void Copter::userhook_MediumLoop()
             GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "icp: dx: %f, dy: %f", _icp.dx, _icp.dy);
 
             /// 姿态解算
-            lidar_dx = (double)_icp.dx;
-            lidar_dy = (double)_icp.dy;
+            lidar_dx = (double)_icp.dy;
+            lidar_dy = (double)-_icp.dx;
 
             is_ok_times = 0;
             is_lidarpos_updated = true;
