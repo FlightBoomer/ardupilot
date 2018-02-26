@@ -82,7 +82,7 @@ void Copter::userhook_MediumLoop()
             // 作图
             //draw(Img, Data, (char *)"Raw", is_show);
             _icp.run(lidar.Data, false);
-            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "icp: dx: %f, dy: %f", _icp.dx, _icp.dy);
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "icp: dx: %f, dy: %f endl\n", _icp.dx, _icp.dy);
 
             /// 姿态解算
             lidar_dx = (double)_icp.dy;

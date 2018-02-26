@@ -87,19 +87,23 @@ public:
         out = vel_ctrl->get_pi();
 
         // 输出限幅
-        if (out.x >= VEL_PID_MAX)
+        if (out.y >= VEL_PID_MAX)
             roll_out = VEL_PID_MAX;
-        else if (out.x <= -VEL_PID_MAX)
+        else if (out.y <= -VEL_PID_MAX)
             roll_out = -VEL_PID_MAX;
         else
             roll_out = out.y;
 
-        if (out.y >= VEL_PID_MAX)
+        if (out.x >= VEL_PID_MAX)
             pitch_out  = VEL_PID_MAX;
-        else if (out.y <= -VEL_PID_MAX)
+        else if (out.x <= -VEL_PID_MAX)
             pitch_out = -VEL_PID_MAX;
         else
-            pitch_out =out.y;
+            pitch_out = out.x;
+	pitch_out = -pitch_out;
+
+	roll_out  = -roll_out;
+	pitch_out = -pitch_out;
     }
 
     void calc_Pos_Controller(double t0) {
@@ -179,8 +183,8 @@ void Copter::lidarhold_run()
         ctrl.set_Vel(lidar_dx, lidar_dy);
         ctrl.calc_Vel_Controller(0, 0, ctrl.get_dt() / 1e3);
         // 打印数据
-        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "rc_x: %f, rc_y: %f", ctrl.get_Roll_Output(), ctrl.get_Pitch_Output());
-        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "dt: %f", ctrl.get_dt() / 1e3);
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "rc_x: %f, rc_y: %f endl\n", ctrl.get_Roll_Output(), ctrl.get_Pitch_Output());
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "dt: %f endl\n", ctrl.get_dt() / 1e3);
 
         is_lidarpos_updated = false;
     }
