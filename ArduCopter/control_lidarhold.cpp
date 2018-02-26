@@ -101,9 +101,6 @@ public:
         else
             pitch_out = out.x;
 	pitch_out = -pitch_out;
-
-	roll_out  = -roll_out;
-	pitch_out = -pitch_out;
     }
 
     void calc_Pos_Controller(double t0) {
