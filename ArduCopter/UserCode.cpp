@@ -1,13 +1,14 @@
 #include "Copter.h"
 #include <opencv2/opencv.hpp>
 #include "include/lidar_driver.hpp"
-#include "include/icp_interface.hpp"
+#include "include/ekf_slam.hpp"
+#include "include/slam.hpp"
 
 
 using namespace cv;
 
 __lidar_driver	lidar;
-__icp			_icp;
+__slam          slam;
 bool is_lidar_online     = false;
 bool is_lidarpos_updated = false;
 double lidar_x,  lidar_y;
@@ -44,16 +45,9 @@ void Copter::userhook_FastLoop()
 void Copter::userhook_50Hz()
 {
     // put your 50Hz code here
-}
-#endif
-
-#ifdef USERHOOK_MEDIUMLOOP
-void Copter::userhook_MediumLoop()
-{
-    // put your 10Hz code here
     ///
     /// 激光雷达扫描
-    const  int is_ok_thereshold = 2;		// 采样几次后处理，这个值可以理解为后续的样本点，样本点越多，后续的精度增加非常多， 但是样本点越多，实时性越差
+    const  int is_ok_thereshold = 1;		// 采样几次后处理，这个值可以理解为后续的样本点，样本点越多，后续的精度增加非常多， 但是样本点越多，实时性越差
     static int is_ok_times      = 0;		// 执行状态标识
     u_result  op_result = -1;
 
@@ -67,7 +61,7 @@ void Copter::userhook_MediumLoop()
             /// 扫描开始
             lidar.Data.clear();
             is_ok_times++;
-        } else if (is_ok_times < is_ok_thereshold) {
+        } else if (is_ok_times <= is_ok_thereshold) {
             /// 正在扫描，因为apm不会自动释放正在执行的任务, 所以千万别在任务函数里写长时间的等待
             op_result = lidar.drv->grabScanData(nodes, count);
             if (IS_OK(op_result)) {
@@ -81,18 +75,26 @@ void Copter::userhook_MediumLoop()
             /// 完成扫描
             // 作图
             //draw(Img, Data, (char *)"Raw", is_show);
-            _icp.run(lidar.Data, false);
-            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "icp: dx: %f, dy: %f endl\n", _icp.dx, _icp.dy);
+            //_icp.run(lidar.Data, false);
+            slam.run(lidar.Data);
+            //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "icp: dx: %f, dy: %f endl\n", _icp.dx, _icp.dy);
 
             /// 姿态解算
-            lidar_dx = (double)_icp.dy;
-            lidar_dy = (double)-_icp.dx;
+            //lidar_dx = (double)_icp.dy;
+            //lidar_dy = (double)-_icp.dx;
 
             is_ok_times = 0;
             is_lidarpos_updated = true;
             waitKey(30);
         }
-    } // is_ldar_online
+    }// is_ldar_online
+}
+#endif
+
+#ifdef USERHOOK_MEDIUMLOOP
+void Copter::userhook_MediumLoop()
+{
+    // put your 10Hz code here
 }
 #endif
 

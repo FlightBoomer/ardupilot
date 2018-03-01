@@ -6,6 +6,7 @@
 
 #include <icp_opencv/icp.h>
 
+using namespace std;
 using namespace cv;
 
 class __icp
@@ -23,10 +24,12 @@ public:
 		d_yaw = 0;
 	}// __icp()
 
-	double dx, dy;
-	double d_yaw;
+    double dx, dy;
+    double d_yaw;
+    float R[4], T[2];				// 旋转矩阵、平移矩阵
+    float err;
 
-	int get_Pts(vector<__scandot> in) {
+    int set_Pts(vector<__scandot> in) {
 		size_t i;
 		CvPoint2D32f temp;
 		float theta, rho;
@@ -51,12 +54,70 @@ public:
 		}
 
 		return in.size();
-	}// 	int get_Pts(vector<__scandot> in)
+    }// int set_Pts(vector<__scandot> in)
+
+    int set_Pts_Last(vector<__scandot> in) {
+        size_t i;
+        CvPoint2D32f temp;
+        float theta, rho;
+
+        data_last.clear();
+        for (i = 0; i < in.size(); i++) {
+            __scandot dot;
+            dot = in[i];		// 未滤波:Data[i] 滤波后:data_dst[i]
+
+            theta = dot.Angle * PI / 180;
+            rho = dot.Dst;
+
+            temp.x = rho  * sin(theta);
+            temp.y = -rho * cos(theta);
+
+            data_last.push_back(temp);
+        }
+
+        return in.size();
+    }// int set_Pts_Last(vector<__scandot> in)
+
+    int set_Pts(vector<CvPoint2D32f> in) {
+        size_t i;
+        CvPoint2D32f temp;
+        float theta, rho;
+
+        data_last.clear();
+        for (i = 0; i < data.size(); i++) {
+            temp = data[i];
+            data_last.push_back(temp);
+        }
+
+        data.clear();
+        for (i = 0; i < in.size(); i++) {
+            temp = in[i];
+            data.push_back(temp);
+        }
+
+        return in.size();
+    }//     int set_Pts(vector<CvPoint2D32f> in)
+
+    int set_Pts_Last(vector<CvPoint2D32f> in) {
+        size_t i;
+        CvPoint2D32f temp;
+        float theta, rho;
+
+        data_last.clear();
+        for (i = 0; i < in.size(); i++) {
+            temp = in[i];
+            data_last.push_back(temp);
+        }
+
+        return in.size();
+    }// int __set_Pts_Last(vector<CvPoint2D32f> in)
+
+    vector<CvPoint2D32f> get_Data_Shifted() { return data_shifted; }
 
 	int run(vector<__scandot> in, bool is_show) {
 		int stat;
 
-		get_Pts(in);
+        set_Pts(in);
 		stat = run(is_show);
 
 		return stat;
@@ -77,9 +138,9 @@ public:
 		CvMat t = cvMat(2, 1, CV_32F, T);
 
 		// ICP主程序
-		float err = icp(&data_last[0], data_last.size(),
-						&data[0], data.size(),
-						&r, &t, cvTermCriteria(CV_TERMCRIT_ITER, 45, 0.001));	// cvTermCriteria(CV_TERMCRIT_ITER, 30, 0.1)
+        err = icp(&data_last[0], data_last.size(),
+                  &data[0], data.size(),
+                  &r, &t, cvTermCriteria(CV_TERMCRIT_ITER, 60, 0.001));	// cvTermCriteria(CV_TERMCRIT_ITER, 30, 0.1)
 		// 测算和保存平移数据，这段和data_shifted都可以不要其实
 		data_shifted.clear();
 		for (int i = 0; i < (int)data_last.size(); i++) {
@@ -133,8 +194,6 @@ public:
 private:
 
 	vector<CvPoint2D32f> data, data_last, data_shifted;
-
-	float R[4], T[2];				// 旋转矩阵、平移矩阵
 	//CvMat r, t;					// 这个改成临时变量
 
 	float dx_temp[3], dy_temp[3];	// 滑动平均值滤波
