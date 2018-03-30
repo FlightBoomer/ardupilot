@@ -73,7 +73,9 @@ void Copter::userhook_50Hz()
             }
         } else {
             /// 完成扫描
-            // 作图
+
+
+            slam.set_VehicleAtt(ahrs.roll, ahrs.pitch, ahrs.yaw);
             slam.run(lidar.Data);
             //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "icp: dx: %f, dy: %f endl\n", _icp.dx, _icp.dy);
 

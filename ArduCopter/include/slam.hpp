@@ -90,8 +90,13 @@ public:
         current_data.clear();
         for (i = 0; i < pt_in.size(); i++) {
             CvPoint2D32f temp;
-            temp.x = pt_in[i].x;
-            temp.y = pt_in[i].y;
+            //temp.x = pt_in[i].x;
+            //temp.y = pt_in[i].y;
+
+            // 锁定偏航
+            temp.x = pt_in[i].x * cos(yaw) + pt_in[i].y * -sin(yaw);
+            temp.y = pt_in[i].x * sin(yaw) + pt_in[i].y * cos(yaw);
+
             in.push_back(temp);
             current_data.push_back(temp);
         }
