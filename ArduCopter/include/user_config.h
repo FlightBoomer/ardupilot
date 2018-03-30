@@ -30,7 +30,7 @@
 #define LidarImageSize		600
 #define LidarImageWidth		LidarImageSize
 #define LidarImageHeight	LidarImageSize
-#define LidarImageScale		0.10		// 默认: 1 / 20
+#define LidarImageScale		0.05		// 0.10 默认: 1 / 20
 
 typedef struct {
 	_u8   Quality;

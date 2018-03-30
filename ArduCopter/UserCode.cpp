@@ -55,7 +55,7 @@ void Copter::userhook_50Hz()
         rplidar_response_measurement_node_t nodes[360 * 2];
         size_t   count = _countof(nodes);
         bool is_express = false;
-        bool is_4k_mode = false;
+        bool is_4k_mode = true;
 
         if (is_ok_times == 0) {
             /// 扫描开始
@@ -74,8 +74,6 @@ void Copter::userhook_50Hz()
         } else {
             /// 完成扫描
             // 作图
-            //draw(Img, Data, (char *)"Raw", is_show);
-            //_icp.run(lidar.Data, false);
             slam.run(lidar.Data);
             //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "icp: dx: %f, dy: %f endl\n", _icp.dx, _icp.dy);
 

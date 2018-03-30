@@ -1,15 +1,24 @@
-#ifndef __SLAM_HPP
-#define __SLAM_HPP
+#ifndef __SLAM_H
+
+#define __SLAM_H
 
 #include "user_config.h"
 #include "icp_interface.hpp"
-#include "dt.hpp"
+#include "ekf_slam.hpp"
+#include "ranging.hpp"
 
-#define Map_ImgSize			(LidarImageSize * 3)
+#include <opencv2/opencv.hpp>
+
+#define Map_ImgSize		(LidarImageSize * 3)
 #define Map_ImgWidth		Map_ImgSize
 #define Map_ImgHeight		Map_ImgSize
 #define Map_ImgScale		LidarImageScale
+#ifndef WIN32
 
+#else
+    #include <Windows.h>
+    #include <time.h>
+#endif
 
 class __slam
 {
@@ -20,22 +29,41 @@ public:
         x = y = 0;
         x_last = y_last = 0;
         map_data.clear();
-        yaw = 0;
+        yaw_icp = 0;
 
         Mat zero(Map_ImgHeight, Map_ImgWidth, CV_8UC3, Scalar(0, 0, 0));		// 图片格式： BGR
         gridmap = zero.clone();
         zero.release();
 
-    }// __slam()
+        ekf.reset();
+
+    }// __slam::__slam()
 
     ~__slam() {
         gridmap.release();
-    }// ~__slam()
+    }// __slam::~__slam()
+
+     /// 传入飞机姿态角
+    void set_VehicleAtt(double roll_in, double pitch_in, double yaw_in) {
+        roll = roll_in; pitch = pitch_in; yaw = yaw_in;
+    }
+
+    /// 传入地面坐标系的加速度
+    void set_VehicleAcc_ef(double ax_ef, double ay_ef) {
+        acc_x = ax_ef; acc_y = ay_ef;
+    }
+
+    /// 传入机体坐标系的加速度
+    void set_VehicleAcc_body(double ax_body, double ay_body) {
+        acc_x_body = ax_body; acc_y_body = ay_body;
+        double z_virtual;
+        //rotation_mat_body2ins(acc_x_body, acc_y_body, 0, acc_x, acc_y, z_virtual, roll, pitch, yaw);
+    }
 
     int run(vector<__scandot> in) {
         size_t i;
 
-        current_data.clear();
+        vector<Point> pt_in;
         for (i = 0; i < in.size(); i++) {
             __scandot dot;
             dot = in[i];		// 未滤波:Data[i] 滤波后:data_dst[i]
@@ -43,10 +71,28 @@ public:
             float theta = dot.Angle * PI / 180;
             float rho = dot.Dst;
 
-            CvPoint2D32f temp;
+            Point temp;
             temp.x = rho  * sin(theta);			// * LidarImageScale + halfWidth
             temp.y = -rho * cos(theta);			// 一个主要的失真原因是作图的时候的比例尺缩放
                                                 // 解决这个事情以后，即不缩放，就算采样一次处理一次信噪比也够
+            pt_in.push_back(temp);
+        }
+
+        int stat = run(pt_in);					// 主程序
+        return stat;
+
+    }// int __slam::run()
+
+    int run(vector<Point> pt_in) {
+        size_t i;
+
+        vector<CvPoint2D32f> in;		// 分成Point和CvPoint2D32f, 其实是一个东西, 做的这么复杂主要是考虑兼容性
+        current_data.clear();
+        for (i = 0; i < pt_in.size(); i++) {
+            CvPoint2D32f temp;
+            temp.x = pt_in[i].x;
+            temp.y = pt_in[i].y;
+            in.push_back(temp);
             current_data.push_back(temp);
         }
 
@@ -62,31 +108,36 @@ public:
 
         // 第二次开始进行匹配
         // 首先选择当前位置的某一邻域进行计算
-        vector<CvPoint2D32f> map_subdata;
-        map_subdata.clear();
-        for (i = 0; i < map_data.size(); i++) {
-            CvPoint2D32f temp = map_data[i];
-            double dx = x - temp.x, dy = y - temp.y;
-            double dst = sqrt(dx * dx + dy * dy);
-            const double dst_threshold = 4500.0f;
-            if (dst < dst_threshold)
-                map_subdata.push_back(temp);
-        }
-
-
-        _icp.set_Pts(map_subdata);						// p.s. : 这两个东西顺序不能倒，因为set_Pts会清除旧的数据
+        _icp.set_Pts(map_data);						// p.s. : 这两个东西顺序不能倒，因为set_Pts会清除旧的数据
         _icp.set_Pts_Last(current_data);		// map_data和in也不能倒，不然会发散，因为是in->map_data，这个步骤有方向性
         _icp.run(true);
 
-
+        /// 获得数据
         x_last = x, y_last = y;
         x = _icp.dx; y = _icp.dy;
         vx = x - x_last; vy = y - y_last;
-        yaw = _icp.d_yaw;
+        yaw_icp_last = yaw_icp;
+        yaw_icp = _icp.d_yaw;
+
+        /// 检查icp是否正常
+        //  是则覆盖数据
+    /*
+        set_ranging_data(in);
+        if (is_icp_functioning_error() == true && t != 0) {
+            x = x_last + r.get_dx();
+            y = y_last + r.get_dy();
+            vx = x - x_last; vy = y - y_last;
+            yaw_icp = yaw_icp_last;
+        }
+    */
+
+        /// 数据代入卡尔曼滤波器
+        ekf.run(x, y, 0, 0);
+
 
         // 如果误差大于一定值，则认为发生了运动
         // 将新的点进行平移和旋转存储进'
-        if (_icp.err >= 4500) {
+        if (_icp.err >= 4500 && _icp.err <= 40000) {
             //vector<CvPoint2D32f> data_shifted = _icp.get_Data_Shifted();
             for (i = 0; i < current_data.size(); i++) {			// data_shifted.size()
                 CvPoint2D32f t = current_data[i];				// 变换之间的数据
@@ -94,50 +145,96 @@ public:
                 temp.x = _icp.R[0] * t.x + _icp.R[1] * t.y + x;         // 平移-旋转变换
                 temp.y = _icp.R[2] * t.x + _icp.R[3] * t.y + y;
 
-                //首先检查栅格地图
-                Point pix((int)(temp.x * Map_ImgScale + Map_ImgWidth  / 2),
-                                (int)(temp.y * Map_ImgScale + Map_ImgHeight / 2));
-                if (pix.x < 0 || pix.x >= gridmap.cols ||
-                    pix.y < 0 || pix.y >= gridmap.rows)
-                    continue;
-                if (gridmap.at<Vec3b>(pix)[0] != 0)
-                    continue;
-
-                gridmap.at<Vec3b>(pix)[0] = gridmap.at<Vec3b>(pix)[1]
-                                                              = gridmap.at<Vec3b>(pix)[2] = 255;
                 map_data.push_back(temp);
 
             }
         }
 
-        imshow("map", gridmap);
 
-        //cout << "dx: " << x << " " << "dy: " << y << endl;
+        //imshow("map", gridmap);
+
+        cout << "dx: " << x << " " << "dy: " << y << endl;
         //cout << "err: "     << _icp.err << endl;
         //cout << "dyaw: " <<_icp.R[1] << endl;
+        //cout << "yaw_icp: " << yaw_icp * 180.0f / PI << endl;
 
         t++;
         return (int)t;
-
-    }// int run()
+    }// int __slam::run(vector<Point> in)
 
 private:
 
     double x, y;
     double x_last, y_last;
     double vx, vy;
-    double yaw;
-    double t;			// 总时间
+    double acc_x, acc_y;				// 地面坐标系下
+    double acc_x_body, acc_y_body;		// 机体坐标系下
+    double roll, pitch, yaw;
+    double yaw_icp, yaw_icp_last;
+    double t;						// 总时间
 
     Mat gridmap;
 
     __icp _icp;
+    __ranging r;
+    __ekf_slam ekf;
     vector<CvPoint2D32f> current_data;
     vector<CvPoint2D32f> map_data;				// vector<__scandot> map_data, 原来用极坐标，结果发现极坐标有问题，很容易让数据爆炸，所以干脆改成笛卡尔坐标
 
-    __dt tx;
+    void set_ranging_data(vector<__scandot> in) { r.set_LidarData(in, true); }
+
+    bool is_icp_functioning_error() {
+
+        const double err_modifier_threshold = 2.5f;
+
+        double dx_icp, dy_icp;
+        double dx_r, dy_r;			// 直接测量得到的移动量
+        bool is_x_error, is_y_error;
+        bool is_x_not_function, is_y_not_function;
+
+        dx_icp = x - x_last;
+        dy_icp = y - y_last;
+
+        r.run();
+        dx_r = r.get_dx();
+        dy_r = r.get_dy();
+
+        is_x_error = is_y_error = false;
+        is_x_not_function = is_y_not_function = false;
+        if (dx_r != 0.0f) {
+            if (fabs(dx_icp / dx_r) >= err_modifier_threshold)
+                is_x_error = true;
+        }
+        else
+            is_x_not_function = true;
+
+        if (dy_r != 0.0f) {
+            if (fabs(dy_icp / dy_r) >= err_modifier_threshold)
+                is_y_error = true;
+        }
+        else
+            is_y_not_function = true;
+
+        if (is_x_not_function && is_y_not_function)
+            return true;
+        else if (is_x_not_function && !is_y_not_function) {
+            if (is_y_error)
+                return true;
+        }
+        else if (!is_x_not_function && is_y_not_function) {
+            if (is_x_error)
+                return true;
+        }
+        else if (!is_x_not_function && !is_y_not_function) {
+            if (is_x_error && is_y_error)
+                return true;
+        }
+        else
+            return false;
+    }// bool __slam::is_icp_functioning_error()
 };
 
 
-#endif  // __SLAM_HPP
 
+
+#endif	/* __SLAM_H */
