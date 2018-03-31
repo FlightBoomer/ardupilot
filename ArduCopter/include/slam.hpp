@@ -88,14 +88,33 @@ public:
 
         vector<CvPoint2D32f> in;		// 分成Point和CvPoint2D32f, 其实是一个东西, 做的这么复杂主要是考虑兼容性
         current_data.clear();
+
+        double a = roll;
+        double b = pitch;
+        double y = yaw;
+        double dv0[9];
+        dv0[0] = cos(b) * cos(y);
+        dv0[3] = cos(a) * sin(y) + sin(a) * sin(b) * cos(y);
+        dv0[6] = sin(a) * sin(y) - cos(a) * sin(b) * cos(y);
+        dv0[1] = -cos(b) * sin(y);
+        dv0[4] = cos(a) * cos(y) - sin(a) * sin(b) * sin(y);
+        dv0[7] = sin(a) * cos(y) + cos(a) * sin(b) * sin(y);
+        dv0[2] = sin(b);
+        dv0[5] = -sin(a) * cos(b);
+        dv0[8] = cos(a) * cos(b);
+
         for (i = 0; i < pt_in.size(); i++) {
             CvPoint2D32f temp;
             //temp.x = pt_in[i].x;
             //temp.y = pt_in[i].y;
 
             // 锁定偏航
-            temp.x = pt_in[i].x * cos(yaw) + pt_in[i].y * -sin(yaw);
-            temp.y = pt_in[i].x * sin(yaw) + pt_in[i].y * cos(yaw);
+            //temp.x = pt_in[i].x * cos(yaw) + pt_in[i].y * -sin(yaw);
+            //temp.y = pt_in[i].x * sin(yaw) + pt_in[i].y * cos(yaw);
+
+            // 平面转换
+            temp.x = pt_in[i].x * dv0[0] + pt_in[i].y * dv0[3];
+            temp.y = pt_in[i].x * dv0[1] + pt_in[i].y * dv0[4];
 
             in.push_back(temp);
             current_data.push_back(temp);
