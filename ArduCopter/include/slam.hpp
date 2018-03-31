@@ -89,9 +89,9 @@ public:
         vector<CvPoint2D32f> in;		// 分成Point和CvPoint2D32f, 其实是一个东西, 做的这么复杂主要是考虑兼容性
         current_data.clear();
 
-        double a = roll;
-        double b = pitch;
-        double g = yaw;
+        double a = -roll;
+        double b = -pitch;
+        double g = -yaw;
         double dv0[9];
         dv0[0] = cos(b) * cos(g);
         dv0[3] = cos(a) * sin(g) + sin(a) * sin(b) * cos(g);
@@ -261,7 +261,7 @@ private:
         // 计算距离
         // 根据子图的位置判断添加距离
         // 子图的记录点必须远离其他已知的记录点
-        int i;
+        size_t i;
         const double dst_threshold = 250.0f;		// 单位: mm
 
         for (i = 0; i < pt_recorded.size(); i++) {
