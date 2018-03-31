@@ -91,14 +91,14 @@ public:
 
         double a = roll;
         double b = pitch;
-        double y = yaw;
+        double g = yaw;
         double dv0[9];
-        dv0[0] = cos(b) * cos(y);
-        dv0[3] = cos(a) * sin(y) + sin(a) * sin(b) * cos(y);
-        dv0[6] = sin(a) * sin(y) - cos(a) * sin(b) * cos(y);
-        dv0[1] = -cos(b) * sin(y);
-        dv0[4] = cos(a) * cos(y) - sin(a) * sin(b) * sin(y);
-        dv0[7] = sin(a) * cos(y) + cos(a) * sin(b) * sin(y);
+        dv0[0] = cos(b) * cos(g);
+        dv0[3] = cos(a) * sin(g) + sin(a) * sin(b) * cos(g);
+        dv0[6] = sin(a) * sin(g) - cos(a) * sin(b) * cos(g);
+        dv0[1] = -cos(b) * sin(g);
+        dv0[4] = cos(a) * cos(g) - sin(a) * sin(b) * sin(g);
+        dv0[7] = sin(a) * cos(g) + cos(a) * sin(b) * sin(g);
         dv0[2] = sin(b);
         dv0[5] = -sin(a) * cos(b);
         dv0[8] = cos(a) * cos(b);
@@ -128,12 +128,13 @@ public:
                 map_data.push_back(temp);
             }
             _icp.set_Pts(in);
+            pt_recorded.push_back(Point(0, 0));		// 原点是一个记录地图的点
         }
 
         // 第二次开始进行匹配
         // 首先选择当前位置的某一邻域进行计算
         _icp.set_Pts(map_data);						// p.s. : 这两个东西顺序不能倒，因为set_Pts会清除旧的数据
-        _icp.set_Pts_Last(current_data);		// map_data和in也不能倒，不然会发散，因为是in->map_data，这个步骤有方向性
+        _icp.set_Pts_Last(current_data);            // map_data和in也不能倒，不然会发散，因为是in->map_data，这个步骤有方向性
         _icp.run(true);
 
         /// 获得数据
@@ -158,10 +159,7 @@ public:
         /// 数据代入卡尔曼滤波器
         ekf.run(x, y, 0, 0);
 
-
-        // 如果误差大于一定值，则认为发生了运动
-        // 将新的点进行平移和旋转存储进'
-        if (_icp.err >= 4500 && _icp.err <= 40000) {
+        if (is_ok_for_mapping(x, y)) {
             //vector<CvPoint2D32f> data_shifted = _icp.get_Data_Shifted();
             for (i = 0; i < current_data.size(); i++) {			// data_shifted.size()
                 CvPoint2D32f t = current_data[i];				// 变换之间的数据
@@ -172,6 +170,7 @@ public:
                 map_data.push_back(temp);
 
             }
+            pt_recorded.push_back(Point(x, y));
         }
 
 
@@ -190,6 +189,7 @@ private:
 
     double x, y;
     double x_last, y_last;
+    vector<Point> pt_recorded;				// 有效的截图点
     double vx, vy;
     double acc_x, acc_y;				// 地面坐标系下
     double acc_x_body, acc_y_body;		// 机体坐标系下
@@ -256,6 +256,26 @@ private:
         else
             return false;
     }// bool __slam::is_icp_functioning_error()
+
+    bool is_ok_for_mapping(double current_x, double current_y) {
+        // 计算距离
+        // 根据子图的位置判断添加距离
+        // 子图的记录点必须远离其他已知的记录点
+        int i;
+        const double dst_threshold = 250.0f;		// 单位: mm
+
+        for (i = 0; i < pt_recorded.size(); i++) {
+            double dst;
+            double dx, dy;
+            dx = current_x - pt_recorded[i].x;
+            dy = current_y - pt_recorded[i].y;
+            dst = sqrt(dx * dx + dy * dy);
+            if (dst < dst_threshold)
+                return false;
+        }
+
+        return true;
+    }
 };
 
 
