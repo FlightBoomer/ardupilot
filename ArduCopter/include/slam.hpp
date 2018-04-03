@@ -14,10 +14,10 @@
 #define Map_ImgHeight		Map_ImgSize
 #define Map_ImgScale		LidarImageScale
 #ifndef WIN32
-
+#include <sys/time.h>
 #else
-    #include <Windows.h>
-    #include <time.h>
+#include <Windows.h>
+#include <time.h>
 #endif
 
 class __slam
@@ -29,7 +29,14 @@ public:
         x = y = 0;
         x_last = y_last = 0;
         map_data.clear();
-        yaw_icp = 0;
+
+        pt_recorded.clear();				// 有效的截图点
+        vx = vy = 0;
+        vx_ned_ahrs = vy_ned_ahrs = 0;
+        acc_x = acc_y = 0;				// 地面坐标系下
+        acc_x_body = acc_y_body = 0;		// 机体坐标系下
+        roll = pitch = yaw = 0;
+        yaw_icp = yaw_icp_last = 0;
 
         Mat zero(Map_ImgHeight, Map_ImgWidth, CV_8UC3, Scalar(0, 0, 0));		// 图片格式： BGR
         gridmap = zero.clone();
@@ -60,8 +67,15 @@ public:
         //rotation_mat_body2ins(acc_x_body, acc_y_body, 0, acc_x, acc_y, z_virtual, roll, pitch, yaw);
     }
 
+    void set_VehicleVelocity_ned(double v_north, double v_east) {
+        vx_ned_ahrs = v_north;
+        vy_ned_ahrs = v_east;
+    }
+
     int run(vector<__scandot> in) {
         size_t i;
+
+        r.set_LidarData(in, true);
 
         vector<Point> pt_in;
         for (i = 0; i < in.size(); i++) {
@@ -146,18 +160,28 @@ public:
 
         /// 检查icp是否正常
         //  是则覆盖数据
-    /*
+        /*
         set_ranging_data(in);
         if (is_icp_functioning_error() == true && t != 0) {
-            x = x_last + r.get_dx();
-            y = y_last + r.get_dy();
-            vx = x - x_last; vy = y - y_last;
-            yaw_icp = yaw_icp_last;
+        x = x_last + r.get_dx();
+        y = y_last + r.get_dy();
+        vx = x - x_last; vy = y - y_last;
+        yaw_icp = yaw_icp_last;
         }
-    */
+        */
 
         /// 数据代入卡尔曼滤波器
-        ekf.run(x, y, 0, 0);
+        ///
+        ///  CHECK POLARITY
+        double vx_ldr = r.get_Vx() / 1000.0f;
+        double vy_ldr = r.get_Vy() / 1000.0f;
+        r.run();
+
+        ekf.set_CtrlInput(acc_x, acc_y);
+        ekf.set_SensorInput(y / 1000.0f, -x / 1000.0f);
+        ekf.set_VelInsInput(vx_ned_ahrs, vy_ned_ahrs, true);
+        ekf.set_VelLdrInput(vx_ldr, vy_ldr);
+        ekf.run();
 
         if (is_ok_for_mapping(x, y)) {
             //vector<CvPoint2D32f> data_shifted = _icp.get_Data_Shifted();
@@ -191,6 +215,7 @@ private:
     double x_last, y_last;
     vector<Point> pt_recorded;				// 有效的截图点
     double vx, vy;
+    double vx_ned_ahrs, vy_ned_ahrs;
     double acc_x, acc_y;				// 地面坐标系下
     double acc_x_body, acc_y_body;		// 机体坐标系下
     double roll, pitch, yaw;

@@ -72,10 +72,15 @@ void Copter::userhook_50Hz()
                 is_ok_times++;
             }
         } else {
-            /// 完成扫描
-
+            /// SLAM算法
+            Vector3f accel_ef, v_ned;
+            ahrs.get_velocity_NED(v_ned);
+            accel_ef = ahrs.get_accel_ef_blended();
 
             slam.set_VehicleAtt(ahrs.roll, ahrs.pitch, ahrs.yaw);
+            slam.set_VehicleAcc_ef(accel_ef.x, accel_ef.y);
+            slam.set_VehicleAcc_body(v_ned.x, v_ned.y);
+
             slam.run(lidar.Data);
             //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "icp: dx: %f, dy: %f endl\n", _icp.dx, _icp.dy);
 
@@ -88,6 +93,7 @@ void Copter::userhook_50Hz()
             waitKey(30);
         }
     }// is_ldar_online
+
 }
 #endif
 
