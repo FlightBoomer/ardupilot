@@ -183,8 +183,9 @@ public:
         ekf.set_VelLdrInput(vx_ldr, vy_ldr);
         ekf.run();
 
-        x = ekf.y * 1000.0f;
-        y = -ekf.x * 1000.0f;
+        ekf.get_Output(y, x, vy, vx);
+        x = -x * 1000.0f;
+        y =  y * 1000.0f;
 
         if (is_ok_for_mapping(x, y)) {
             //vector<CvPoint2D32f> data_shifted = _icp.get_Data_Shifted();
