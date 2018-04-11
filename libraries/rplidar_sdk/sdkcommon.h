@@ -37,14 +37,14 @@
 #elif defined(_MACOS)
 #include "arch/macOS/arch_macOS.h"
 #elif defined(__GNUC__)
-#include "arch/linux/arch_linux.h"
+#include "arch_linux.h"
 #else
 #error "unsupported target"
 #endif
 
-#include "hal/types.h"
-#include "hal/assert.h"
+#include "types.h"
+#include "assert.h"
 
 #include "rplidar.h"
 
-#include "hal/util.h"
+#include "util.h"
