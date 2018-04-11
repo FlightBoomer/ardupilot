@@ -14,7 +14,7 @@ int __lidar_driver::init() {
         // use default com port
         opt_com_path = "\\\\.\\com3";
 #else
-        opt_com_path = "/dev/ttyUSB0";
+        opt_com_path = (char *)"/dev/ttyUSB0";
 #endif
     }
 
@@ -84,13 +84,13 @@ int __lidar_driver::init() {
 
 }
 
-bool __lidar_driver::checkRPLIDARHealth(RPlidarDriver * drv)
+bool __lidar_driver::checkRPLIDARHealth(RPlidarDriver * this_drv)
 {
     u_result     op_result;
     rplidar_response_device_health_t healthinfo;
 
 
-    op_result = drv->getHealth(healthinfo);
+    op_result = this_drv->getHealth(healthinfo);
     if (IS_OK(op_result)) { // the macro IS_OK is the preperred way to judge whether the operation is succeed.
         printf("RPLidar health status : %d\n", healthinfo.status);
         if (healthinfo.status == RPLIDAR_STATUS_ERROR) {

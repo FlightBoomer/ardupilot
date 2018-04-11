@@ -8154,3 +8154,5 @@ libraries/rplidar_sdk/types.h
 libraries/rplidar_sdk/util.h
 ArduCopter/include/config.h
 ArduCopter/include/misc_tools.hpp
+ArduCopter/include/lidar_driver.h
+ArduCopter/lidar_driver.cpp
