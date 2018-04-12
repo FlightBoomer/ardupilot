@@ -226,7 +226,7 @@ int __lidar_driver::draw(Mat &dst, double data[], char window_name[], bool is_sh
     //putText(dst, s, Point(50, 50), 4, .5, Scalar(0, 0, 0), 2);
 
     if (is_show)
-        imshow(window_name, dst);
+        imshow((const string)window_name, dst);
 
     return __SUCCEEDED;
 }

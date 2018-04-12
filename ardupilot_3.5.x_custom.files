@@ -8156,3 +8156,17 @@ ArduCopter/include/config.h
 ArduCopter/include/misc_tools.hpp
 ArduCopter/include/lidar_driver.h
 ArduCopter/lidar_driver.cpp
+libraries/icp/icp.cpp
+libraries/icp/icp.h
+libraries/icp/icpPointToPlane.cpp
+libraries/icp/icpPointToPlane.h
+libraries/icp/icpPointToPoint.cpp
+libraries/icp/icpPointToPoint.h
+libraries/icp/kdtree.cpp
+libraries/icp/kdtree.h
+libraries/icp/matrix.cpp
+libraries/icp/matrix.h
+ArduCopter/icp_interface.cpp
+ArduCopter/include/icp_interface.h
+ArduCopter/og_mapping.cpp
+ArduCopter/include/og_mapping.h

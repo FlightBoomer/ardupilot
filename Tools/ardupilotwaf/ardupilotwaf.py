@@ -62,6 +62,7 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_FlashStorage',
     # 自增加
     'rplidar_sdk',
+    'icp',
 ]
 
 def get_legacy_defines(sketch_name):
