@@ -16,6 +16,12 @@ bool is_lidar_online;
 double x_esti = 0, y_esti = 0;
 double robotTheta = 0;
 
+__dt   dt;
+double time_all = 0;            // ms
+
+/* 测试代码 */
+FILE *fp;
+
 #ifdef USERHOOK_INIT
 void Copter::userhook_init()
 {
@@ -30,6 +36,14 @@ void Copter::userhook_init()
         is_lidar_online = true;
 
         map_laser = new GridMapping(0, 2.2, -2.2, 200, 0.5, 13500, 0, 0);
+
+        ///
+        /// 测试代码 准备记录
+        fp = fopen("lidar_data.txt", "at+");
+        fprintf(fp, "\n\n");
+
+        if (fp == NULL)
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "file creating failed ..");
 
         GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "rplidar is online..");
 
@@ -55,6 +69,12 @@ void Copter::userhook_50Hz()
     static int i = 1;
 
     ///
+    /// 更新时间
+    time_all += dt.get();
+    if (time_all <= 10000)      // ms
+        return;                 // 静置几秒，等待yaw稳定
+
+    ///
     /// 更新欧拉角
     robotTheta = ahrs.yaw * 180.0f / PI;
     while (robotTheta < 0)      // 角度归一化至0~360
@@ -69,7 +89,18 @@ void Copter::userhook_50Hz()
         status = lidar->grab_ScanData();
         if (status == __SUCCEEDED) {
             Mat dst;
-            lidar->draw(dst, lidar->laserArray, "raw", true);
+            lidar->draw(dst, lidar->laserArray, (char *)"raw", true);
+
+            ///
+            /// 记录
+            Vector3f accel_ef, v_ned;
+            ahrs.get_velocity_NED(v_ned);
+            accel_ef = ahrs.get_accel_ef_blended();
+            fprintf(fp, "%f %f %f %f %f %f %f %f\t\t", time_all, ahrs.pitch, ahrs.roll, ahrs.yaw, accel_ef.x, accel_ef.y, v_ned.x, v_ned.y);
+            for (size_t j = 0; j < lidar->laserData.size(); j++) {
+                    fprintf(fp, "%f %f\t", lidar->laserData[j].dst, lidar->laserData[j].angle);
+            }
+            fprintf(fp, "\n");
 
             // 前5帧只要塞入正确的数据即可
             if (i <= 5) {

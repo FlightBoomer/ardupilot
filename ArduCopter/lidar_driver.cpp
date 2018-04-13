@@ -134,7 +134,7 @@ int __lidar_driver::grab_ScanData() {
 
         // scandot转换double数组
         memset(laserArray, 0, sizeof(double) * 720);
-        for (int i = 0; i < laserData.size(); i++) {
+        for (size_t i = 0; i < laserData.size(); i++) {
             int integer = (int)laserData[i].angle;				// 角度整数部分
             float decimal = laserData[i].angle - integer;		// 角度小数部分
 

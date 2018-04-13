@@ -8170,3 +8170,4 @@ ArduCopter/icp_interface.cpp
 ArduCopter/include/icp_interface.h
 ArduCopter/og_mapping.cpp
 ArduCopter/include/og_mapping.h
+ArduCopter/include/dt.hpp
