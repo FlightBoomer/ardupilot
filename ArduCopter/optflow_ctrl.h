@@ -1,0 +1,137 @@
+#ifndef OPTFLOW_CTRL_H
+#define OPTFLOW_CTRL_H
+
+#include <cmath>
+#include <stdio.h>
+#include <stdarg.h>
+
+#include "defines.h"
+#include "config.h"
+
+#include "../libraries/AP_AHRS/AP_AHRS.h"
+#include "../libraries/AP_InertialNav/AP_InertialNav.h"         // ArduPilot Mega inertial navigation library
+#include "../libraries/AP_InertialNav/AP_InertialNav_NavEKF.h"
+#include "../libraries/AC_WPNav/AC_WPNav.h"                     // ArduCopter waypoint navigation library
+#include "../libraries/AC_AttitudeControl/AC_PosControl.h"
+
+#include "include/dt.hpp"
+
+class __optflow_ctrl {
+public:
+
+    __optflow_ctrl();
+
+    void set_AHRS_Data(double &pitch_in, double &roll_in, double &yaw_in) {
+        pitch = pitch_in;
+        roll  = roll_in;
+        yaw   = yaw_in;
+    }
+
+    void set_FlowRate(Vector2f in) {
+        vel_r_raw_last = vel_r_raw_pre;
+        vel_r_raw_pre  = vel_r_raw;
+        vel_r_raw = in;
+    }
+
+    void set_BodyRate(Vector2f in) {
+        vel_flow_last = vel_flow;
+        vel_flow = in;
+    }
+
+    void set_HomePos(Vector3f in) {
+        pos_offset = in;
+    }
+
+    void set_GroundDistance(double in) {
+        ground_distance = in;
+    }
+
+    double get_GroundDistance() { return ground_distance; }
+    Vector3f get_Position_ef()  { return pos_ef; }
+    Vector2f get_Velocity_ef()  { return vel_ef; }
+
+
+    int update();
+
+private:
+
+    double pitch, roll, yaw;                                // in rads
+    double ground_distance;                                 // mm
+
+    Vector3f pos_offset;                                    // 起飞位置
+    Vector3f pos, pos_last;                                 // 解算得到的当前位置
+    Vector2f vel_r_raw, vel_r_raw_pre, vel_r_raw_last;      // 光流原始数据
+    Vector2f vel_flow, vel_flow_last;                       // 光流自身解算的机体系速度, m/s
+    Vector2f vel, vel_last;
+
+    Vector3f pos_ef;
+    Vector2f vel_ef;
+
+    uint32_t t, t_last;
+    __dt dt;
+
+    double roll_i, pitch_i;                                 // 角度积分，用来消除误差
+
+    void update_Time();
+
+};
+
+class __optflow_inav_intf: public AP_InertialNav_NavEKF {              // __optflow_control_inav_interface
+public:
+    __optflow_inav_intf(AP_AHRS_NavEKF &ahrs) :
+        AP_InertialNav_NavEKF(ahrs)
+        {}
+
+    void update_BasicData(AP_InertialNav_NavEKF in) {
+                _relpos_cm   = in.get_position();         // NEU
+                _velocity_cm = in.get_velocity();         // NEU
+                _pos_z_rate  = in.get_pos_z_derivative();
+
+                /// 这两部分传不过来,用自己的AHRS读
+                //_haveabspos  = _ahrs_ekf.get_position(_abspos);
+                //_ahrs_ekf    = in._ahrs_ekf;
+    }
+
+    void update_Flow(__optflow_ctrl in) {
+        double x, y, z;
+        Vector2f _vec2f;
+
+        dt.update();
+
+        //
+        _relpos_cm = in.get_Position_ef();
+        _relpos_cm.x /= 10.0f, _relpos_cm.y /= 10.0f, _relpos_cm.z /= 10.0f;        // mm->cm
+
+        //
+        _vec2f = in.get_Velocity_ef();
+        x = _vec2f.x, y = _vec2f.y;
+        ground_dst_last = ground_dst;
+        ground_dst = in.get_GroundDistance();
+        z = (ground_dst - ground_dst_last) / dt.get_dt_ms();
+
+        _velocity_cm.x = x;
+        _velocity_cm.y = y;
+        _velocity_cm.z = z;
+        _pos_z_rate    = z;
+
+        _abspos.alt = (int32_t)_relpos_cm.z;       ///< param 2 - Altitude in centimeters (meters * 100) see LOCATION_ALT_MAX_M
+        _abspos.lat = (int32_t)_relpos_cm.x;       ///< param 3 - Latitude * 10**7
+        _abspos.lng = (int32_t)_relpos_cm.y;       ///< param 4 - Longitude * 10**7
+
+        _haveabspos = true;
+    }
+
+private:
+
+    double ground_dst, ground_dst_last;
+    __dt dt;
+
+};
+
+/// 变量声明
+extern __optflow_ctrl flow_ctrl;
+extern AP_InertialNav *f_inav;
+extern AC_PosControl *of_pos_control;
+extern AC_WPNav *of_wp_nav;
+
+#endif // OPTFLOW_CTRL_H

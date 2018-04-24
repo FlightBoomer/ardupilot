@@ -118,6 +118,7 @@ void AP_OpticalFlow_PX4Flow::timer(void)
         state.flowRate = Vector2f(frame.pixel_flow_x_integral * flowScaleFactorX,
                                   frame.pixel_flow_y_integral * flowScaleFactorY) * 1.0e-4 * integralToRate;
         state.bodyRate = Vector2f(frame.gyro_x_rate_integral, frame.gyro_y_rate_integral) * 1.0e-4 * integralToRate;
+        state.ground_distance = (double)frame.ground_distance;           // 自增加 对地距离
         
         _applyYaw(state.flowRate);
         _applyYaw(state.bodyRate);

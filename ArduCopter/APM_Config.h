@@ -16,8 +16,8 @@
 //#define AC_TERRAIN            DISABLED            // disable terrain library
 //#define PARACHUTE             DISABLED            // disable parachute release to save 1k of flash
 //#define CLI_ENABLED           DISABLED            // disable the CLI (command-line-interface) to save 21K of flash space
-//#define NAV_GUIDED            DISABLED            // disable external navigation computer ability to control vehicle through MAV_CMD_NAV_GUIDED mission commands
-//#define OPTFLOW               DISABLED            // disable optical flow sensor to save 5K of flash space
+#define   NAV_GUIDED            ENABLED             // disable external navigation computer ability to control vehicle through MAV_CMD_NAV_GUIDED mission commands
+#define   OPTFLOW               ENABLED             // disable optical flow sensor to save 5K of flash space
 //#define VISUAL_ODOMETRY_ENABLED DISABLED          // disable visual odometry to save 2K of flash space
 //#define FRSKY_TELEM_ENABLED   DISABLED            // disable FRSky telemetry
 //#define ADSB_ENABLED          DISABLED            // disable ADSB support
@@ -38,9 +38,9 @@
 // Put your variable definitions into the UserVariables.h file (or another file name and then change the #define below).
 //#define USERHOOK_VARIABLES "UserVariables.h"
 // Put your custom code into the UserCode.cpp with function names matching those listed below and ensure the appropriate #define below is uncommented below
-//#define USERHOOK_INIT userhook_init();                      // for code to be run once at startup
-//#define USERHOOK_FASTLOOP userhook_FastLoop();            // for code to be run at 100hz
+#define USERHOOK_INIT userhook_init();                      // for code to be run once at startup
+#define USERHOOK_FASTLOOP userhook_FastLoop();            // for code to be run at 100hz
 //#define USERHOOK_50HZLOOP userhook_50Hz();                  // for code to be run at 50hz
 //#define USERHOOK_MEDIUMLOOP userhook_MediumLoop();        // for code to be run at 10hz
-//#define USERHOOK_SLOWLOOP userhook_SlowLoop();            // for code to be run at 3.3hz
+#define USERHOOK_SLOWLOOP userhook_SlowLoop();            // for code to be run at 3.3hz
 //#define USERHOOK_SUPERSLOWLOOP userhook_SuperSlowLoop();  // for code to be run at 1hz

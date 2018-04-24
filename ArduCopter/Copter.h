@@ -123,6 +123,9 @@
 #include "afs_copter.h"
 #endif
 
+// 自增加
+#include "optflow_ctrl.h"
+
 // Local modules
 #include "Parameters.h"
 #include "avoidance_adsb.h"
@@ -937,6 +940,11 @@ private:
     bool avoid_adsb_init(bool ignore_checks);
     void avoid_adsb_run();
     bool avoid_adsb_set_velocity(const Vector3f& velocity_neu);
+
+    ///
+    /// of_loiter 自增加
+    bool ofloiter_init(bool ignore_checks);
+    void ofloiter_run();
 
     void ekf_check();
     bool ekf_over_threshold();

@@ -54,6 +54,9 @@ public:
     // velocity - returns the velocity in m/s
     const Vector2f& bodyRate() const { return _state.bodyRate; }
 
+    // 自增加 返回对地距离
+    const double& ground_distance() const { return _state.ground_distance; }
+
     // device_id - returns device id
     uint8_t device_id() const { return _state.device_id; }
 
@@ -68,6 +71,7 @@ public:
         uint8_t  surface_quality;   // image quality (below TBD you can't trust the dx,dy values returned)
         Vector2f flowRate;          // optical flow angular rate in rad/sec measured about the X and Y body axis. A RH rotation about a sensor axis produces a positive rate.
         Vector2f bodyRate;          // body inertial angular rate in rad/sec measured about the X and Y body axis. A RH rotation about a sensor axis produces a positive rate.
+        double   ground_distance;   // 自增加 对地距离
     };
 
     // return a 3D vector defining the position offset of the sensors focal point in metres relative to the body frame origin

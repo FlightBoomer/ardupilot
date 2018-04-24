@@ -111,7 +111,8 @@ public:
      */
     float       get_velocity_z() const;
 
-private:
+//private:
+protected:
     Vector3f _relpos_cm;   // NEU
     Vector3f _velocity_cm; // NEU
     float _pos_z_rate;
