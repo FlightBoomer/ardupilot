@@ -10,8 +10,8 @@ public:
         t_elapsed = 0;
     }
 
-    double get_dt_ms() { return dt; }
-    double get_t_all_ms() { return t_elapsed; }
+    double get_dt_ms() { return dt / (double)1000.0f; }
+    double get_t_all_ms() { return t_elapsed / (double)1000.0f; }
 
     double update() {
 
@@ -19,7 +19,7 @@ public:
         t = AP_HAL::micros();
         dt = (double)(t - t_last);
 
-        return dt;
+        return dt / (double)1000.0f;
     }
 
 private:

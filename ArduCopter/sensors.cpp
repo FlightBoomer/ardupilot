@@ -145,12 +145,22 @@ void Copter::update_optical_flow(void)
         Vector2f bodyRate = optflow.bodyRate();
         const Vector3f &posOffset = optflow.get_pos_offset();
         ahrs.writeOptFlowMeas(flowQuality, flowRate, bodyRate, last_of_update, posOffset);
+        double ground_distance = optflow.ground_distance();                                     // 自增加
 
-        /// 自增加 测试代码
-        //double ground_distance = optflow.ground_distance();
+        /// 自增加
         //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "flowRate: %f, %f: bodyRate: %f, %f", flowRate.x, flowRate.y, bodyRate.x, bodyRate.y);
         GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "bodyRate: %f, %f", bodyRate.x, bodyRate.y);
         //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "gnd_dist: %f", ground_distance);
+
+        flow_ctrl.set_AHRS_Data(ahrs.pitch, ahrs.roll, ahrs.yaw);
+        flow_ctrl.set_BodyRate(bodyRate);
+        flow_ctrl.set_FlowRate(flowRate);
+        flow_ctrl.set_GroundDistance(ground_distance);
+
+        flow_ctrl.update();
+
+        //f_inav->update(G_Dt);
+        f_inav->update_Flow(flow_ctrl, true);
 
         if (g.log_bitmask & MASK_LOG_OPTFLOW) {
             Log_Write_Optflow();

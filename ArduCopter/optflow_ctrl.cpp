@@ -6,17 +6,17 @@
 
 __optflow_ctrl flow_ctrl;
 
-AP_InertialNav *f_inav;
-AC_PosControl *of_pos_control;
-AC_WPNav *of_wp_nav;
+__optflow_inav_intf *f_inav;
+AC_PosControl       *of_pos_control;
+AC_WPNav            *of_wp_nav;
 
 __optflow_ctrl::__optflow_ctrl() {
 
     pitch = 0, roll = 0, yaw = 0;
 
-    pos_offset.x     = pos_offset.y = 0;
-    pos.x = pos.y    = 0;
-    pos_last.x       = pos_last.y = 0;
+    pos_offset.x     = pos_offset.y     = pos_offset.z = 0;
+    pos.x            = pos.y            = pos.z        = 0;
+    pos_last.x       = pos_last.y       = pos.z        = 0;
 
     vel_r_raw.x      = vel_r_raw.y      = 0;
     vel_r_raw_pre.x  = vel_r_raw_pre.y  = 0;
@@ -27,6 +27,9 @@ __optflow_ctrl::__optflow_ctrl() {
 
     vel.x            = vel.y            = 0;
     vel_last.x       = vel_last.y       = 0;
+
+    pos_ef_m.x       = pos_ef.y         = pos_ef.z    = 0;
+    pos_ef_m.z       = 0;
 
     roll_i = pitch_i = 0;
 
@@ -60,6 +63,10 @@ int __optflow_ctrl::update() {
     double vr_x, vr_y;
     vr_x = (vel_r_raw.x + vel_r_raw_pre.x + vel_r_raw_last.x) / 3.0f;
     vr_y = (vel_r_raw.y + vel_r_raw_pre.y + vel_r_raw_last.y) / 3.0f;
+
+    /// 除以时间，这个是因为底层在处理包的时候乘以了时间, 单位是s
+    vr_x /=  (float)dt.get_dt_ms() / 1000.0f;
+    vr_y /=  (float)dt.get_dt_ms() / 1000.0f;
 
     /// 摄像机像素移动结合视场角转换为速度
     /// 相似三角形算出
@@ -100,11 +107,28 @@ int __optflow_ctrl::update() {
     vel.y = 0.8 * vel.y + 0.2 * vel_last.y;
 
     /// 对机体转对地
-    pos_ef.x = pos.x * (float)cos(yaw) - pos.y * (float)sin(yaw);  // north
-    pos_ef.y = pos.x * (float)sin(yaw) + pos.y * (float)cos(yaw);  // east
+    pos_ef.x = pos.y * (float)cos(yaw) - pos.x * (float)sin(yaw);  // north,    pos.x * (float)cos(yaw) - pos.y * (float)sin(yaw)
+    pos_ef.y = pos.y * (float)sin(yaw) + pos.x * (float)cos(yaw);  // east,     pos.x * (float)sin(yaw) + pos.y * (float)cos(yaw)
 
-    vel_ef.x = vel.x * (float)cos(yaw) - vel.y * (float)sin(yaw);
-    vel_ef.y = vel.x * (float)cos(yaw) - vel.y * (float)sin(yaw);
+    vel_ef.x = vel.y * (float)cos(yaw) - vel.x * (float)sin(yaw);
+    vel_ef.y = vel.y * (float)cos(yaw) - vel.x * (float)sin(yaw);
+
+    ///
+    /// 官方数据更新
+    Vector2f vel_flow_temp;
+    // LPF
+    vel_flow_temp.x = 0.8 * vel_flow.x + 0.2 * vel_flow_last.x;     // m/s
+    vel_flow_temp.y = 0.8 * vel_flow.y + 0.2 * vel_flow_last.y;
+    // 积分
+    pos_m.x += vel_flow_temp.x;                                     // m
+    pos_m.y += vel_flow_temp.y;
+    // 机体坐标转ef
+    pos_ef_m.x = pos_m.y * (float)cos(yaw) - pos_m.x * (float)sin(yaw);  // north
+    pos_ef_m.y = pos_m.y * (float)sin(yaw) + pos_m.x * (float)cos(yaw);  // east
+    pos_ef_m.z = ground_distance / 1000.0f;
+
+    vel_ef_m.x = vel_flow_temp.y * (float)cos(yaw) - vel_flow_temp.x * (float)sin(yaw);
+    vel_ef_m.y = vel_flow_temp.y * (float)cos(yaw) - vel_flow_temp.x * (float)sin(yaw);
 
 
     return 0;
