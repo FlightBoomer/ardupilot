@@ -149,7 +149,7 @@ void Copter::update_optical_flow(void)
 
         /// 自增加
         //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "flowRate: %f, %f: bodyRate: %f, %f", flowRate.x, flowRate.y, bodyRate.x, bodyRate.y);
-        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "bodyRate: %f, %f", bodyRate.x, bodyRate.y);
+        //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "bodyRate: %f, %f", bodyRate.x, bodyRate.y);
         //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "gnd_dist: %f", ground_distance);
 
         flow_ctrl.set_AHRS_Data(ahrs.pitch, ahrs.roll, ahrs.yaw);

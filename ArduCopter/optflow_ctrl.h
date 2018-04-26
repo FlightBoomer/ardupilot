@@ -8,6 +8,9 @@
 #include "defines.h"
 #include "config.h"
 
+#include "GCS_Mavlink.h"
+#include <GCS_MAVLink/GCS.h>
+
 #include "../libraries/AP_AHRS/AP_AHRS.h"
 #include "../libraries/AP_InertialNav/AP_InertialNav.h"         // ArduPilot Mega inertial navigation library
 #include "../libraries/AP_InertialNav/AP_InertialNav_NavEKF.h"
@@ -143,6 +146,7 @@ public:
 
             _haveabspos = true;
 
+            //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "pos xy: %f, %f", (double)in.get_Position_ef().x, (double)in.get_Position_ef().y);
         }
     }
 

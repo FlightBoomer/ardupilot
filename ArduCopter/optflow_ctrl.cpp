@@ -1,8 +1,39 @@
 #include "optflow_ctrl.h"
 
-// https://blog.csdn.net/u010720661/article/details/54019410
-// https://blog.csdn.net/u011913159/article/details/79616492
-// https://blog.csdn.net/u010720661/article/details/54019410
+
+
+/*
+
+    // 参考资料
+        https://blog.csdn.net/u010720661/article/details/54019410
+        https://blog.csdn.net/u011913159/article/details/79616492
+        https://blog.csdn.net/u010720661/article/details/54019410
+
+    Px4flow的代码内光流数据的定义                                              http://pixhawk.org/modules/px4flow
+        typedef struct i2c_frame
+        {
+            uint16_t frame_count;// counts created I2C frames [#frames]
+            int16_t pixel_flow_x_sum;// latest x flow measurement in pixels*10 [pixels]
+            int16_t pixel_flow_y_sum;// latest y flow measurement in pixels*10 [pixels]
+            int16_t flow_comp_m_x;// x velocity*1000 [meters/sec]
+            int16_t flow_comp_m_y;// y velocity*1000 [meters/sec]
+            int16_t qual;// Optical flow quality / confidence [0: bad, 255: maximum quality]
+            int16_t gyro_x_rate; // latest gyro x rate [rad/sec]
+            int16_t gyro_y_rate; // latest gyro y rate [rad/sec]
+            int16_t gyro_z_rate; // latest gyro z rate [rad/sec]
+            uint8_t gyro_range; // gyro range [0 .. 7] equals [50 deg/sec .. 2000 deg/sec]
+            uint8_t sonar_timestamp;// time since last sonar update [milliseconds]
+            int16_t ground_distance;// Ground distance in meters*1000 [meters]. Positive value: distance known. Negative value: Unknown distance
+        } i2c_frame;
+
+    APM内的读取代码
+        state.surface_quality = frame.qual;
+        state.flowRate = Vector2f(frame.pixel_flow_x_integral * flowScaleFactorX,
+                                  frame.pixel_flow_y_integral * flowScaleFactorY) * 1.0e-4 * integralToRate;
+        state.bodyRate = Vector2f(frame.gyro_x_rate_integral, frame.gyro_y_rate_integral) * 1.0e-4 * integralToRate;
+        state.ground_distance = (double)frame.ground_distance;
+
+*/
 
 __optflow_ctrl flow_ctrl;
 
@@ -120,17 +151,17 @@ int __optflow_ctrl::update() {
     vel_flow_temp.x = 0.8 * vel_flow.x + 0.2 * vel_flow_last.x;     // m/s
     vel_flow_temp.y = 0.8 * vel_flow.y + 0.2 * vel_flow_last.y;
     // 积分
-    pos_m.x += vel_flow_temp.x;                                     // m
-    pos_m.y += vel_flow_temp.y;
+    pos_m.x += vel_flow_temp.x * (float)dt.get_dt_ms() / 1000.0f;   // m
+    pos_m.y += vel_flow_temp.y * (float)dt.get_dt_ms() / 1000.0f;   // m
     // 机体坐标转ef
     pos_ef_m.x = pos_m.y * (float)cos(yaw) - pos_m.x * (float)sin(yaw);  // north
     pos_ef_m.y = pos_m.y * (float)sin(yaw) + pos_m.x * (float)cos(yaw);  // east
-    pos_ef_m.z = ground_distance / 1000.0f;
+    pos_ef_m.z = (float)ground_distance / 1000.0f;
 
     vel_ef_m.x = vel_flow_temp.y * (float)cos(yaw) - vel_flow_temp.x * (float)sin(yaw);
     vel_ef_m.y = vel_flow_temp.y * (float)cos(yaw) - vel_flow_temp.x * (float)sin(yaw);
 
-
+    //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "pos xy: %f, %f", (double)pos_ef_m.x, (double)pos_ef_m.y);
     return 0;
 }
 
