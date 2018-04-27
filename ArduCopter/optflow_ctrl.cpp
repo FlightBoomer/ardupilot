@@ -102,12 +102,12 @@ int __optflow_ctrl::update() {
     /// 摄像机像素移动结合视场角转换为速度
     /// 相似三角形算出
     double vx_gnd, vy_gnd;
-    vx_gnd = (vr_x / flow_img_width)  * ccd_width  * (ground_distance / scope_length);
+    vx_gnd = (vr_x / flow_img_width)  * ccd_width  * (ground_distance / scope_length);      // mm/s
     vy_gnd = (vr_y / flow_img_heigth) * ccd_heigth * (ground_distance / scope_length);
 
     /// 速度积分变为位移
     pos_last = pos;
-    pos.x += (float)vx_gnd;
+    pos.x += (float)vx_gnd;                                                                 // mm
     pos.y += (float)vy_gnd;
 
     /// IMU得到的欧拉角角度积分变成角量，用来抵消角度运动时造成的误差
@@ -125,16 +125,17 @@ int __optflow_ctrl::update() {
     //pos_y -= y_int;
 
     /// 位移LPF
-    pos.x = 0.8 * pos.x + 0.2 * pos_last.x;
+    pos.x = 0.8 * pos.x + 0.2 * pos_last.x;                                                 // mm
     pos.y = 0.8 * pos.y + 0.2 * pos_last.y;
+    pos.z = 0.8 * (float)ground_distance + 0.2 * pos_last.z;
 
     /// 微分得到速度
-    vel_last = vel;
-    vel.x = (pos.x - pos_last.x) / (float)dt.get_dt_ms();
-    vel.y = (pos.y - pos_last.y) / (float)dt.get_t_all_ms();
+    vel_last = vel;                                                                         // mm/s
+    vel.x = (pos.x - pos_last.x) / ((float)dt.get_dt_ms() / 1000.0f);
+    vel.y = (pos.y - pos_last.y) / ((float)dt.get_dt_ms() / 1000.0f);
 
     /// 速度LPF
-    vel.x = 0.8 * vel.x + 0.2 * vel_last.x;
+    vel.x = 0.8 * vel.x + 0.2 * vel_last.x;                                                 // mm/s
     vel.y = 0.8 * vel.y + 0.2 * vel_last.y;
 
     /// 对机体转对地
@@ -156,7 +157,8 @@ int __optflow_ctrl::update() {
     // 机体坐标转ef
     pos_ef_m.x = pos_m.y * (float)cos(yaw) - pos_m.x * (float)sin(yaw);  // north
     pos_ef_m.y = pos_m.y * (float)sin(yaw) + pos_m.x * (float)cos(yaw);  // east
-    pos_ef_m.z = (float)ground_distance / 1000.0f;
+    pos_ef_m.z = (float)ground_distance / 1000.0f;                       // up, m
+    pos_ef_m.z = pos_ef_m.z *  cos(pitch) * cos(roll);                   // 角度修正
 
     vel_ef_m.x = vel_flow_temp.y * (float)cos(yaw) - vel_flow_temp.x * (float)sin(yaw);
     vel_ef_m.y = vel_flow_temp.y * (float)cos(yaw) - vel_flow_temp.x * (float)sin(yaw);

@@ -1620,3 +1620,9 @@ Tools/Linux_HAL_Essentials/pru/pwmpru
 Tools/Linux_HAL_Essentials/pru/rangefinderpru
 Tools/Linux_HAL_Essentials/pru/rcinpru
 Tools/Replay
+Tools/Hello
+Tools/ArduPPM/ATMega32U2/LUFA/Drivers/USB/LowLevel/Template
+Tools/ArduPPM/ATMega328p
+Tools/ardupilotwaf
+Tools/ardupilotwaf/px4/cmake/configs
+Tools/CPUInfo

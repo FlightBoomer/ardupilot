@@ -65,6 +65,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             success = land_init(ignore_checks);
             break;
 
+        case OFLOITER:
+            success = ofloiter_init(ignore_checks);
+            break;
+
         case RTL:
             success = rtl_init(ignore_checks);
             break;
@@ -200,6 +204,10 @@ void Copter::update_flight_mode()
 
         case LAND:
             land_run();
+            break;
+
+        case OFLOITER:
+            ofloiter_run();
             break;
 
         case RTL:
@@ -391,6 +399,9 @@ void Copter::notify_flight_mode(control_mode_t mode)
             break;
         case LAND:
             notify.set_flight_mode_str("LAND");
+            break;
+        case OFLOITER:
+            notify.set_flight_mode_str("OFLOITER");
             break;
         case DRIFT:
             notify.set_flight_mode_str("DRIF");

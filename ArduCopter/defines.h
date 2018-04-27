@@ -94,6 +94,7 @@ enum control_mode_t {
     RTL =           6,  // automatic return to launching point
     CIRCLE =        7,  // automatic circular flight with automatic throttle
     LAND =          9,  // automatic landing with horizontal position control
+    OFLOITER =     10,  // 自增加回来，光流定点
     DRIFT =        11,  // semi-automous position, yaw and throttle control
     SPORT =        13,  // manual earth-frame angular rate control with manual throttle
     FLIP =         14,  // automatically flip the vehicle on the roll axis
