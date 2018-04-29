@@ -70,6 +70,7 @@ ArduCopter/motors.cpp
 ArduCopter/navigation.cpp
 ArduCopter/optflow_ctrl.cpp
 ArduCopter/optflow_ctrl.h
+ArduCopter/optflow_inav_interface.cpp
 ArduCopter/perf_info.cpp
 ArduCopter/position_vector.cpp
 ArduCopter/precision_landing.cpp

@@ -19,11 +19,20 @@
 
 #include "include/dt.hpp"
 
+///
+/// \brief The __optflow_ctrl class
+/// 单位在输入的时候使用上一级函数的默认值
+/// 输入以后在接收的函数全部转公制
+/// 全部转为m和s和rad
+/// 也全部以公制输出
+/// 为了好算
 class __optflow_ctrl {
 public:
 
     __optflow_ctrl();
 
+    ///
+    /// 输入部分
     void set_AHRS_Data(double pitch_in, double roll_in, double yaw_in) {
         pitch = pitch_in;                                       // rad
         roll  = roll_in;
@@ -37,21 +46,27 @@ public:
     }
 
     void set_BodyRate(Vector2f in) {
-        vel_flow_last = vel_flow;                               // cm/s
+        vel_flow_last = vel_flow;                               // m/s
         vel_flow = in;
     }
 
     void set_HomePos(Vector3f in) {
         pos_offset = in;                                        // mm
+        pos_offset.x /= 1000.0f;
+        pos_offset.y /= 1000.0f;
+        pos_offset.z /= 1000.0f;                                // mm->m
     }
 
     void set_GroundDistance(double in) {
-        ground_distance = in;                                   // mm
+        ground_distance = in *  cos(pitch) * cos(roll);         // mm, 飞行器角度修正，求出真正的对地距离
+        ground_distance /= (double)1000.0f;                     // mm->m
     }
 
-    double get_GroundDistance()  { return ground_distance; }    // mm
-    Vector3f get_Position_ef()   { return pos_ef; }             // mm
-    Vector2f get_Velocity_ef()   { return vel_ef; }             // mm/s
+    ///
+    /// 输出部分
+    double get_GroundDistance()  { return ground_distance; }    // m
+    Vector3f get_Position_ef()   { return pos_ef; }             // m
+    Vector2f get_Velocity_ef()   { return vel_ef; }             // m/s
     Vector3f get_Position_ef_m() { return pos_ef_m; }           // m
     Vector2f get_Velocity_ef_m() { return vel_ef_m; }           // m/s
 
@@ -89,72 +104,9 @@ public:
         AP_InertialNav_NavEKF(ahrs)
         {}
 
-    void update_BasicData(AP_InertialNav_NavEKF in) {
-                _relpos_cm   = in.get_position();         // NEU
-                _velocity_cm = in.get_velocity();         // NEU
-                _pos_z_rate  = in.get_pos_z_derivative();
+    void update_BasicData(AP_InertialNav_NavEKF in);
 
-                /// 这两部分传不过来,用自己的AHRS读
-                //_haveabspos  = _ahrs_ekf.get_position(_abspos);
-                //_ahrs_ekf    = in._ahrs_ekf;
-    }
-
-    void update_Flow(__optflow_ctrl in, bool is_use_flow_m) {
-        float x, y, z;
-        Vector2f _vec2f;
-
-        dt.update();
-
-        if (!is_use_flow_m) {
-            //
-            _relpos_cm = in.get_Position_ef();
-            _relpos_cm.x /= 10.0f, _relpos_cm.y /= 10.0f, _relpos_cm.z /= 10.0f;        // mm->cm
-
-            //
-            _vec2f = in.get_Velocity_ef();
-            x = _vec2f.x, y = _vec2f.y;
-            ground_dst_last = ground_dst;
-            ground_dst = in.get_GroundDistance();
-            z = (float)(ground_dst - ground_dst_last) / ((float)dt.get_dt_ms() / 1000.0f);     // mm/s
-            z /= 10.0f;                                                                        // mm/s->cm/s
-
-            _velocity_cm.x = x;
-            _velocity_cm.y = y;
-            _velocity_cm.z = z;
-            _pos_z_rate    = z;
-
-            _abspos.alt = (int32_t)_relpos_cm.z;       ///< param 2 - Altitude in centimeters (meters * 100) see LOCATION_ALT_MAX_M
-            _abspos.lat = (int32_t)_relpos_cm.x;       ///< param 3 - Latitude * 10**7
-            _abspos.lng = (int32_t)_relpos_cm.y;       ///< param 4 - Longitude * 10**7
-
-            _haveabspos = true;
-        }
-        else {
-            _relpos_cm = in.get_Position_ef_m();
-            _relpos_cm.x *= 100.0f;                                                           // m->cm
-            _relpos_cm.y *= 100.0f;
-            _relpos_cm.z *= 100.0f;
-
-            _vec2f = in.get_Velocity_ef_m() * 100.0f;
-            ground_dst_last = ground_dst;
-            ground_dst = in.get_GroundDistance() / (double)1000.0f;                           // mm->m
-            z = (float)(ground_dst - ground_dst_last) / ((float)dt.get_dt_ms() / 1000.0f);    // m/s
-            _velocity_cm.x = _vec2f.x;                                                        // cm/s
-            _velocity_cm.y = _vec2f.y;
-            _velocity_cm.z = z * 100.0f;                                                      // m/s->cm/s
-            _pos_z_rate    = z * 100.0f;
-
-            _abspos.alt = (int32_t)_relpos_cm.z;       ///< param 2 - Altitude in centimeters (meters * 100) see LOCATION_ALT_MAX_M
-            _abspos.lat = (int32_t)_relpos_cm.x;       ///< param 3 - Latitude * 10**7
-            _abspos.lng = (int32_t)_relpos_cm.y;       ///< param 4 - Longitude * 10**7
-
-            _haveabspos = true;
-
-            //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "pos xy: %f, %f", (double)_relpos_cm.x, (double)_relpos_cm.y);
-            //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "_relpos_cm.z: %f", (double)_relpos_cm.z);
-            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "gnd_dist_rate: %f", (double)_velocity_cm.z);
-        }
-    }
+    void update_Flow(__optflow_ctrl in, bool is_use_flow_m);
 
 private:
 
