@@ -943,8 +943,10 @@ private:
 
     ///
     /// of_loiter 自增加
-    bool ofloiter_init(bool ignore_checks);
+    bool ofloiter_init(bool ignore_checks);                 // 光流定高定点，但是数据不算入惯导
     void ofloiter_run();
+    bool sonar_althold_init(bool ignore_checks);            // 超声波定高，采用光流的控制器
+    void sonar_althold_run();
 
     void ekf_check();
     bool ekf_over_threshold();

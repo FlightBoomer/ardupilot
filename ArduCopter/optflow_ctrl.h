@@ -58,7 +58,7 @@ public:
     }
 
     void set_GroundDistance(double in) {
-        ground_distance = in *  cos(pitch) * cos(roll);         // mm, 飞行器角度修正，求出真正的对地距离
+        ground_distance = in * cos(pitch) * cos(roll);          // mm, 飞行器角度修正，求出真正的对地距离, 本来可以均值滤波，但是考虑到均值滤波加完对微分影响很大所以不加了
         ground_distance /= (double)1000.0f;                     // mm->m
     }
 
@@ -76,7 +76,7 @@ public:
 private:
 
     double pitch, roll, yaw;                                          // in rads
-    double ground_distance;                                           // mm
+    double ground_distance;                                           // m
 
     Vector3f pos_offset;                                              // 起飞位置
     Vector3f pos, pos_last;                                           // 解算得到的当前位置

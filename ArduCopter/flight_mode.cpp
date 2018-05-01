@@ -69,13 +69,17 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             success = ofloiter_init(ignore_checks);
             break;
 
+        case SONAR_ALTHOLD:
+            success = sonar_althold_init(ignore_checks);
+            break;
+
         case RTL:
             success = rtl_init(ignore_checks);
             break;
 
-        case DRIFT:
-            success = drift_init(ignore_checks);
-            break;
+        //case DRIFT:
+        //    success = drift_init(ignore_checks);
+        //    break;
 
         case SPORT:
             success = sport_init(ignore_checks);
@@ -92,18 +96,18 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
 #endif
 
 #if POSHOLD_ENABLED == ENABLED
-        case POSHOLD:
-            success = poshold_init(ignore_checks);
-            break;
+        //case POSHOLD:
+        //    success = poshold_init(ignore_checks);
+        //    break;
 #endif
 
-        case BRAKE:
-            success = brake_init(ignore_checks);
-            break;
+        //case BRAKE:
+        //    success = brake_init(ignore_checks);
+        //    break;
 
-        case THROW:
-            success = throw_init(ignore_checks);
-            break;
+        //case THROW:
+        //    success = throw_init(ignore_checks);
+        //    break;
 
         case AVOID_ADSB:
             success = avoid_adsb_init(ignore_checks);
@@ -210,13 +214,17 @@ void Copter::update_flight_mode()
             ofloiter_run();
             break;
 
+        case SONAR_ALTHOLD:
+            sonar_althold_run();
+            break;
+
         case RTL:
             rtl_run();
             break;
 
-        case DRIFT:
-            drift_run();
-            break;
+        //case DRIFT:
+        //    drift_run();
+        //    break;
 
         case SPORT:
             sport_run();
@@ -233,18 +241,18 @@ void Copter::update_flight_mode()
 #endif
 
 #if POSHOLD_ENABLED == ENABLED
-        case POSHOLD:
-            poshold_run();
-            break;
+        //case POSHOLD:
+        //    poshold_run();
+        //    break;
 #endif
 
-        case BRAKE:
-            brake_run();
-            break;
+        //case BRAKE:
+        //    brake_run();
+        //    break;
 
-        case THROW:
-            throw_run();
-            break;
+        //case THROW:
+        //    throw_run();
+        //    break;
 
         case AVOID_ADSB:
             avoid_adsb_run();
@@ -403,9 +411,9 @@ void Copter::notify_flight_mode(control_mode_t mode)
         case OFLOITER:
             notify.set_flight_mode_str("OFLOITER");
             break;
-        case DRIFT:
-            notify.set_flight_mode_str("DRIF");
-            break;
+        //case DRIFT:
+        //   notify.set_flight_mode_str("DRIF");
+        //    break;
         case SPORT:
             notify.set_flight_mode_str("SPRT");
             break;
@@ -415,20 +423,23 @@ void Copter::notify_flight_mode(control_mode_t mode)
         case AUTOTUNE:
             notify.set_flight_mode_str("ATUN");
             break;
-        case POSHOLD:
-            notify.set_flight_mode_str("PHLD");
-            break;
-        case BRAKE:
-            notify.set_flight_mode_str("BRAK");
-            break;
-        case THROW:
-            notify.set_flight_mode_str("THRW");
-            break;
+        //case POSHOLD:
+        //   notify.set_flight_mode_str("PHLD");
+        //    break;
+        //case BRAKE:
+        //    notify.set_flight_mode_str("BRAK");
+        //    break;
+        //case THROW:
+        //    notify.set_flight_mode_str("THRW");
+        //    break;
         case AVOID_ADSB:
             notify.set_flight_mode_str("AVOI");
             break;
-        case GUIDED_NOGPS:
-            notify.set_flight_mode_str("GNGP");
+        //case GUIDED_NOGPS:
+        //    notify.set_flight_mode_str("GNGP");
+        //    break;
+        case SONAR_ALTHOLD:
+            notify.set_flight_mode_str("SALT");
             break;
         default:
             notify.set_flight_mode_str("----");

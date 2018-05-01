@@ -45,6 +45,7 @@ ArduCopter/control_loiter.cpp
 ArduCopter/control_ofloiter.cpp
 ArduCopter/control_poshold.cpp
 ArduCopter/control_rtl.cpp
+ArduCopter/control_sonar_althold.cpp
 ArduCopter/control_sport.cpp
 ArduCopter/control_stabilize.cpp
 ArduCopter/control_throw.cpp
