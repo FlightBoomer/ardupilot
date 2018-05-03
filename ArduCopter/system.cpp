@@ -688,11 +688,15 @@ void Copter::allocate_motors(void)
     }
     AP_Param::load_object_from_eeprom(of_pos_control, of_pos_control->var_info);
 
-    of_wp_nav = new AC_WPNav(inertial_nav, *ahrs_view, *of_pos_control, *attitude_control);
-    if (of_wp_nav == nullptr) {
-        AP_HAL::panic("Unable to allocate optflow WPNav");
-    }
-    AP_Param::load_object_from_eeprom(of_wp_nav, of_wp_nav->var_info);
+    of_xy = new __pos_ctrl_body(*ahrs_view, *f_inav, *motors, *attitude_control,
+                                  g.p_alt_hold, g.p_vel_z, g.pid_accel_z,
+                                  g.p_pos_xy, g.pi_vel_xy);
+
+    //of_wp_nav = new AC_WPNav(inertial_nav, *ahrs_view, *of_pos_control, *attitude_control);
+    //if (of_wp_nav == nullptr) {
+    //    AP_HAL::panic("Unable to allocate optflow WPNav");
+    //}
+    //AP_Param::load_object_from_eeprom(of_wp_nav, of_wp_nav->var_info);
 
 #endif
 

@@ -39,7 +39,8 @@ __optflow_ctrl flow_ctrl;
 
 __optflow_inav_intf *f_inav;
 AC_PosControl       *of_pos_control;
-AC_WPNav            *of_wp_nav;
+__pos_ctrl_body     *of_xy;
+//AC_WPNav          *of_wp_nav;
 
 __optflow_ctrl::__optflow_ctrl() {
 

@@ -64,6 +64,6 @@ void __optflow_inav_intf::update_Flow(__optflow_ctrl in, bool is_use_flow_m) {
 
         //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "pos xy: %f, %f", (double)_relpos_cm.x, (double)_relpos_cm.y);
         //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "_relpos_cm.z: %f", (double)_relpos_cm.z);
-        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "gnd_dist_rate: %f", (double)_velocity_cm.z);
+        //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "gnd_dist_rate: %f", (double)_velocity_cm.z);
     }
 }

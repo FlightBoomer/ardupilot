@@ -1,5 +1,9 @@
 #include "Copter.h"
 
+#include "include/dt.hpp"
+#include "../libraries/AC_AttitudeControl/AC_PosControl.h"
+#include "../libraries/AC_PID/AC_P.h"
+#include "../libraries/AC_PID/AC_PI_2D.h"
 
 /*
  * Init and run calls for althold, flight mode
@@ -18,6 +22,9 @@ bool Copter::ofloiter_init(bool ignore_checks)
     // initialize vertical speeds and leash lengths
     of_pos_control->set_speed_z(-g.pilot_velocity_z_max, g.pilot_velocity_z_max);
     of_pos_control->set_accel_z(g.pilot_accel_z);
+
+    // 初始化位置控制
+    of_pos_control->init_xy_controller(true);
 
     // initialise position and desired velocity
     if (!of_pos_control->is_active_z()) {
@@ -47,10 +54,21 @@ void Copter::ofloiter_run()
 
     // get pilot desired lean angles
     float target_roll, target_pitch;
-    get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, attitude_control->get_althold_lean_angle_max());
-    /// 修正角度
-    target_pitch /= 2.0f;       // 这边减小一下增益，以减小室内飞行的难度
-    target_roll  /= 2.0f;
+    //get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, attitude_control->get_althold_lean_angle_max());
+
+    Vector2f vel_xy = flow_ctrl.get_Velocity_m();
+    vel_xy.x *= 100.0f;
+    vel_xy.y *= 100.0f;
+    static int j = 0;
+    j++;
+    if (j >= 40) {
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "control optflow vel xy: %f, %f", (double)vel_xy.y, (double)vel_xy.x);
+        j = 0;
+    }
+    of_xy->set_current_vel_body_xy(vel_xy.y, vel_xy.x);
+    of_xy->update_vel_controller_body_xy(ekfNavVelGainScaler);
+    target_pitch = of_xy->get_pitch();
+    target_roll  = of_xy->get_roll();
 
     // get pilot's desired yaw rate
     float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());

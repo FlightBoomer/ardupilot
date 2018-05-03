@@ -57,9 +57,9 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             success = loiter_init(ignore_checks);
             break;
 
-        case GUIDED:
-            success = guided_init(ignore_checks);
-            break;
+        //case GUIDED:
+        //    success = guided_init(ignore_checks);
+        //   break;
 
         case LAND:
             success = land_init(ignore_checks);
@@ -81,18 +81,18 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
         //    success = drift_init(ignore_checks);
         //    break;
 
-        case SPORT:
-            success = sport_init(ignore_checks);
-            break;
+        //case SPORT:
+        //    success = sport_init(ignore_checks);
+        //    break;
 
         case FLIP:
             success = flip_init(ignore_checks);
             break;
 
 #if AUTOTUNE_ENABLED == ENABLED
-        case AUTOTUNE:
-            success = autotune_init(ignore_checks);
-            break;
+        //case AUTOTUNE:
+        //    success = autotune_init(ignore_checks);
+        //   break;
 #endif
 
 #if POSHOLD_ENABLED == ENABLED
@@ -109,13 +109,13 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
         //    success = throw_init(ignore_checks);
         //    break;
 
-        case AVOID_ADSB:
-            success = avoid_adsb_init(ignore_checks);
-            break;
+        //case AVOID_ADSB:
+        //    success = avoid_adsb_init(ignore_checks);
+        //    break;
 
-        case GUIDED_NOGPS:
-            success = guided_nogps_init(ignore_checks);
-            break;
+        //case GUIDED_NOGPS:
+        //    success = guided_nogps_init(ignore_checks);
+        //    break;
 
         default:
             success = false;
@@ -202,9 +202,9 @@ void Copter::update_flight_mode()
             loiter_run();
             break;
 
-        case GUIDED:
-            guided_run();
-            break;
+        //case GUIDED:
+        //    guided_run();
+        //    break;
 
         case LAND:
             land_run();
@@ -235,9 +235,9 @@ void Copter::update_flight_mode()
             break;
 
 #if AUTOTUNE_ENABLED == ENABLED
-        case AUTOTUNE:
-            autotune_run();
-            break;
+        //case AUTOTUNE:
+        //    autotune_run();
+        //    break;
 #endif
 
 #if POSHOLD_ENABLED == ENABLED
@@ -254,13 +254,13 @@ void Copter::update_flight_mode()
         //    throw_run();
         //    break;
 
-        case AVOID_ADSB:
-            avoid_adsb_run();
-            break;
+        //case AVOID_ADSB:
+        //    avoid_adsb_run();
+        //    break;
 
-        case GUIDED_NOGPS:
-            guided_nogps_run();
-            break;
+        //case GUIDED_NOGPS:
+        //    guided_nogps_run();
+        //    break;
 
         default:
             break;
@@ -393,9 +393,9 @@ void Copter::notify_flight_mode(control_mode_t mode)
         case AUTO:
             notify.set_flight_mode_str("AUTO");
             break;
-        case GUIDED:
-            notify.set_flight_mode_str("GUID");
-            break;
+        //case GUIDED:
+        //    notify.set_flight_mode_str("GUID");
+        //    break;
         case LOITER:
             notify.set_flight_mode_str("LOIT");
             break;
@@ -414,15 +414,15 @@ void Copter::notify_flight_mode(control_mode_t mode)
         //case DRIFT:
         //   notify.set_flight_mode_str("DRIF");
         //    break;
-        case SPORT:
-            notify.set_flight_mode_str("SPRT");
-            break;
+        //case SPORT:
+        //    notify.set_flight_mode_str("SPRT");
+        //    break;
         case FLIP:
             notify.set_flight_mode_str("FLIP");
             break;
-        case AUTOTUNE:
-            notify.set_flight_mode_str("ATUN");
-            break;
+        //case AUTOTUNE:
+        //    notify.set_flight_mode_str("ATUN");
+        //    break;
         //case POSHOLD:
         //   notify.set_flight_mode_str("PHLD");
         //    break;
@@ -432,9 +432,9 @@ void Copter::notify_flight_mode(control_mode_t mode)
         //case THROW:
         //    notify.set_flight_mode_str("THRW");
         //    break;
-        case AVOID_ADSB:
-            notify.set_flight_mode_str("AVOI");
-            break;
+        //case AVOID_ADSB:
+        //    notify.set_flight_mode_str("AVOI");
+        //    break;
         //case GUIDED_NOGPS:
         //    notify.set_flight_mode_str("GNGP");
         //    break;
