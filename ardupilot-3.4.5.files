@@ -78,6 +78,9 @@ ArduCopter/takeoff.cpp
 ArduCopter/terrain.cpp
 ArduCopter/test.cpp
 ArduCopter/tuning.cpp
+ArduCopter/user_include/orb_slam_interface.hpp
+ArduCopter/user_include/orb_slam_udp.h
+ArduCopter/user_include/user_config.h
 ArduCopter/version.h
 ArduCopter/wscript
 BUILD.md
