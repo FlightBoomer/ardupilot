@@ -65,6 +65,7 @@ ArduCopter/make.inc
 ArduCopter/motor_test.cpp
 ArduCopter/motors.cpp
 ArduCopter/navigation.cpp
+ArduCopter/orb_slam_interface.cpp
 ArduCopter/perf_info.cpp
 ArduCopter/position_vector.cpp
 ArduCopter/precision_landing.cpp

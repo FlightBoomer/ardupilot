@@ -376,7 +376,8 @@ class dark(linux):
         )
 
 class pxfmini(linux):
-    toolchain = 'arm-linux-gnueabihf'
+#   toolchain = 'arm-linux-gnueabihf'
+    toolchain = 'native'
 
     def configure_env(self, cfg, env):
         super(pxfmini, self).configure_env(cfg, env)
