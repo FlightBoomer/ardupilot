@@ -65,7 +65,7 @@ ArduCopter/make.inc
 ArduCopter/motor_test.cpp
 ArduCopter/motors.cpp
 ArduCopter/navigation.cpp
-ArduCopter/orb_slam_interface.cpp
+ArduCopter/orb_slam_udp.cpp
 ArduCopter/perf_info.cpp
 ArduCopter/position_vector.cpp
 ArduCopter/precision_landing.cpp
@@ -78,7 +78,8 @@ ArduCopter/takeoff.cpp
 ArduCopter/terrain.cpp
 ArduCopter/test.cpp
 ArduCopter/tuning.cpp
-ArduCopter/user_include/orb_slam_interface.hpp
+ArduCopter/user_include/orb_slam_interface.h
+ArduCopter/user_include/orb_slam_interface.h
 ArduCopter/user_include/orb_slam_udp.h
 ArduCopter/user_include/user_config.h
 ArduCopter/version.h

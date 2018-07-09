@@ -1,15 +1,16 @@
 #include "Copter.h"
+#include "user_include/orb_slam_interface.h"
+#include "user_include/orb_slam_udp.h"
 
-extern bool echo_ser(int sock);
-extern int  init_orb_SLAM_udp(void);
-extern int sock;
+__orb_slam_udp orb_slam;
 
 #ifdef USERHOOK_INIT
 void Copter::userhook_init()
 {
     // put your initialisation code here
     // this will be called once at start-up
-    init_orb_SLAM_udp();
+\
+    orb_slam.init();
 }
 #endif
 
@@ -31,7 +32,8 @@ void Copter::userhook_50Hz()
 void Copter::userhook_MediumLoop()
 {
     // put your 10Hz code here
-    echo_ser(sock);
+
+    orb_slam.update();
 }
 #endif
 

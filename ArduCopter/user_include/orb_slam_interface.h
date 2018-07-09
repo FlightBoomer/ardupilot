@@ -13,9 +13,13 @@ public:
 
     }
 
-    virtual int init();
+    virtual int init() {
+        return -1;
+    }
 
-    virtual int update();
+    virtual int update() {
+        return -1;
+    }
 
     __vec3f get_Pos() { return pos; }
     __vec3f get_PosRate() { return pos_rate; }
