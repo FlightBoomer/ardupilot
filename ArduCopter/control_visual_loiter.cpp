@@ -1,12 +1,12 @@
 #include "Copter.h"
-
+#include "user_include/control_visual_loiter.hpp"
 
 /*
  * Init and run calls for althold, flight mode
  */
 
 // althold_init - initialise althold controller
-bool Copter::visual_loiter_init(bool ignore_checks)
+bool Copter::althold_init(bool ignore_checks)
 {
 #if FRAME_CONFIG == HELI_FRAME
     // do not allow helis to enter Alt Hold if the Rotor Runup is not complete
@@ -33,7 +33,7 @@ bool Copter::visual_loiter_init(bool ignore_checks)
 
 // althold_run - runs the althold controller
 // should be called at 100hz or more
-void Copter::visual_loiter_run()
+void Copter::althold_run()
 {
     AltHoldModeState althold_state;
     float takeoff_climb_rate = 0.0f;
@@ -81,7 +81,7 @@ void Copter::visual_loiter_run()
 
         motors.set_desired_spool_state(AP_Motors::DESIRED_SHUT_DOWN);
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
-#if FRAME_CONFIG == HELI_FRAME    
+#if FRAME_CONFIG == HELI_FRAME
         // force descent rate and call position controller
         pos_control.set_alt_target_from_climb_rate(-abs(g.land_speed), G_Dt, false);
 #else

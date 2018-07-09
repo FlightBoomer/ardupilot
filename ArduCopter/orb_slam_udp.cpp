@@ -17,8 +17,17 @@ int __orb_slam_udp::update() {
     int stat;
     stat = recv_Data();
 
-    if (stat == 0)
+    if (stat == 0) {
         refine_Data();
+
+        dt.update();
+        double t_s = dt.get_dt_s();     // time in seconds
+
+        cout << "dt:" << t_s << endl;
+
+        calc_PosRate(t_s);
+        calc_AngularRate(t_s);
+    }
 
     return stat;
 
@@ -93,6 +102,9 @@ int __orb_slam_udp::refine_Data() {
            &_roll, &_pitch, &_yaw,
            &_x,    &_y,     &_z);
 
+    imu_last = imu;
+    pos_last = pos;
+
     imu.roll = _roll; imu.pitch = _pitch; imu.yaw = _yaw;
     pos.x    = _x;    pos.y     = _y;     pos.z   = _z;
 
@@ -101,3 +113,18 @@ int __orb_slam_udp::refine_Data() {
     return 0;
 }
 
+void __orb_slam_udp::calc_PosRate(double _dt_s) {
+
+    pos_rate.x = (pos.x - pos_rate.x) / _dt_s;
+    pos_rate.z = (pos.y - pos_rate.y) / _dt_s;
+    pos_rate.y = (pos.z - pos_rate.z) / _dt_s;
+
+}
+
+void __orb_slam_udp::calc_AngularRate(double _dt_s) {
+
+    imu_rate.roll  = (imu.roll  - imu_last.roll)  / _dt_s;
+    imu_rate.pitch = (imu.pitch - imu_last.pitch) / _dt_s;
+    imu_rate.yaw   = (imu.yaw   - imu_last.yaw)   / _dt_s;
+
+}

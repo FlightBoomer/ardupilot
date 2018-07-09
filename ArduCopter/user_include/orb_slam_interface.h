@@ -29,8 +29,16 @@ public:
 
 protected:
 
-    __imu   imu, imu_rate;
-    __vec3f pos, pos_rate;
+    __imu   imu, imu_last, imu_rate;
+    __vec3f pos, pos_last, pos_rate;
+
+    virtual void calc_PosRate(double _dt_s) {
+
+    }
+
+    virtual void calc_AngularRate(double _dt_s) {
+
+    }
 
 };
 

@@ -46,6 +46,7 @@ ArduCopter/control_rtl.cpp
 ArduCopter/control_sport.cpp
 ArduCopter/control_stabilize.cpp
 ArduCopter/control_throw.cpp
+ArduCopter/control_visual_loiter.cpp
 ArduCopter/crash_check.cpp
 ArduCopter/defines.h
 ArduCopter/ekf_check.cpp
@@ -78,6 +79,8 @@ ArduCopter/takeoff.cpp
 ArduCopter/terrain.cpp
 ArduCopter/test.cpp
 ArduCopter/tuning.cpp
+ArduCopter/user_include/control_visual_loiter.hpp
+ArduCopter/user_include/dt.hpp
 ArduCopter/user_include/orb_slam_interface.h
 ArduCopter/user_include/orb_slam_interface.h
 ArduCopter/user_include/orb_slam_udp.h

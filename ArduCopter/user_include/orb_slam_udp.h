@@ -3,6 +3,7 @@
 
 #include "user_config.h"
 #include "orb_slam_interface.h"
+#include "dt.hpp"
 
 #include <iostream>
 #include <stdio.h>
@@ -34,11 +35,17 @@ protected:
 
     struct timeval timeout;
 
+    __dt dt;
+
     int set_Timeout();
 
     int recv_Data();
 
     int refine_Data();
+
+    void calc_PosRate(double _dt_s) override;
+
+    void calc_AngularRate(double _dt_s) override;
 
 };
 
