@@ -85,6 +85,7 @@ ArduCopter/user_include/orb_slam_interface.h
 ArduCopter/user_include/orb_slam_interface.h
 ArduCopter/user_include/orb_slam_udp.h
 ArduCopter/user_include/user_config.h
+ArduCopter/user_include/user_filter.hpp
 ArduCopter/version.h
 ArduCopter/wscript
 BUILD.md

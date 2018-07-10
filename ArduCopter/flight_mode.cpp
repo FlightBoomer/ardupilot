@@ -109,6 +109,9 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             success = guided_nogps_init(ignore_checks);
             break;
 
+        case VISUAL_LOITER:
+            success = visual_loiter_init(ignore_checks);
+
         default:
             success = false;
             break;
@@ -245,6 +248,10 @@ void Copter::update_flight_mode()
             guided_nogps_run();
             break;
 
+        case VISUAL_LOITER:
+            visual_loiter_run();
+            break;
+
         default:
             break;
     }
@@ -337,6 +344,10 @@ bool Copter::mode_allows_arming(control_mode_t mode, bool arming_from_gcs)
     if (mode_has_manual_throttle(mode) || mode == LOITER || mode == ALT_HOLD || mode == POSHOLD || mode == DRIFT || mode == SPORT || mode == THROW || (arming_from_gcs && (mode == GUIDED || mode == GUIDED_NOGPS))) {
         return true;
     }
+    /// Added
+    else if (mode == VISUAL_LOITER) {
+        return true;
+    }
     return false;
 }
 
@@ -421,6 +432,8 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
     case GUIDED_NOGPS:
         port->print("GUIDED_NOGPS");
         break;
+    case VISUAL_LOITER:
+        port->print("VISUAL_LOITER");
     default:
         port->printf("Mode(%u)", (unsigned)mode);
         break;
